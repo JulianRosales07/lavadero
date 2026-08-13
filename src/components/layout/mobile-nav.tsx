@@ -1,8 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { Link, useLocation } from 'react-router-dom';
 import {
   ClipboardList,
   LayoutDashboard,
@@ -40,7 +39,8 @@ const TABS: Tab[] = [
  * crear una orden. Reemplaza al sidebar por debajo de lg.
  */
 export function MobileNav() {
-  const pathname = usePathname();
+  const location = useLocation();
+  const pathname = location.pathname;
   const { user, logout } = useAuth();
   const [moreOpen, setMoreOpen] = React.useState(false);
 
@@ -58,7 +58,7 @@ export function MobileNav() {
     <>
       {/* Botón de acción principal */}
       <Link
-        href="/ordenes/nueva"
+        to="/ordenes/nueva"
         className={cn(
           'fixed bottom-[calc(4.25rem+env(safe-area-inset-bottom))] right-4 z-40 grid size-14 place-items-center rounded-2xl bg-primary text-primary-foreground shadow-lifted transition-transform active:scale-95 lg:hidden',
           pathname.startsWith('/ordenes/nueva') && 'hidden',
@@ -81,7 +81,7 @@ export function MobileNav() {
             return (
               <li key={tab.href}>
                 <Link
-                  href={tab.href}
+                  to={tab.href}
                   aria-current={active ? 'page' : undefined}
                   className={cn(
                     'flex flex-col items-center gap-1 py-2.5 text-[11px] font-medium transition-colors',
@@ -154,7 +154,7 @@ export function MobileNav() {
                 return (
                   <Link
                     key={item.href}
-                    href={item.href}
+                    to={item.href}
                     onClick={() => setMoreOpen(false)}
                     className={cn(
                       'flex flex-col items-center gap-2 rounded-2xl border p-4 text-center text-xs font-medium transition-colors active:scale-95',

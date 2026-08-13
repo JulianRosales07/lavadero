@@ -1,6 +1,5 @@
-﻿'use client';
+'use client';
 
-import Image from 'next/image';
 import { QRCodeSVG } from 'qrcode.react';
 import { PAYMENT_METHOD_META, VEHICLE_TYPE_META } from '@/lib/constants';
 import { formatDate, formatDateTime, formatTime, money } from '@/lib/format';
@@ -42,13 +41,10 @@ export function Ticket({
       <header className="text-center">
         {business?.logoUrl ? (
           <div className="relative mx-auto mb-1.5 h-12 w-24">
-            <Image
+            <img
               src={business.logoUrl}
               alt=""
-              fill
-              sizes="96px"
-              className="object-contain"
-              unoptimized
+              className="h-full w-full object-contain"
             />
           </div>
         ) : null}

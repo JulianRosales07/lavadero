@@ -1,7 +1,6 @@
 'use client';
 
 import * as React from 'react';
-import Image from 'next/image';
 import { Camera, Loader2, Plus, Trash2, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -352,13 +351,10 @@ function VehicleFields({
               <Loader2 className="size-5 animate-spin" />
             ) : vehicle.photoUrl ? (
               <>
-                <Image
+                <img
                   src={vehicle.photoUrl}
                   alt="Fotografía del vehículo"
-                  fill
-                  sizes="104px"
-                  className="object-cover"
-                  unoptimized
+                  className="h-full w-full object-cover"
                 />
                 <span className="absolute inset-x-0 bottom-0 bg-slate-950/70 py-1 text-center text-[10px] font-medium text-white">
                   Cambiar

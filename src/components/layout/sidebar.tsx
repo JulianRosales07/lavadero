@@ -1,7 +1,6 @@
-﻿'use client';
+'use client';
 
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { Link, useLocation } from 'react-router-dom';
 import { ChevronsLeft, Droplets, LogOut, Plus, Settings, X } from 'lucide-react';
 import { useAuth } from '@/components/auth-provider';
 import { SIDEBAR, sectionsFor } from '@/components/layout/nav-items';
@@ -33,7 +32,8 @@ export function Sidebar({
   collapsed: boolean;
   onToggleCollapsed: () => void;
 }) {
-  const pathname = usePathname();
+  const location = useLocation();
+  const pathname = location.pathname;
   const { user, logout } = useAuth();
   const { data: business } = useBusiness();
 
@@ -51,7 +51,7 @@ export function Sidebar({
           style={{ width: SIDEBAR.rail }}
         >
           <Link
-            href="/dashboard"
+            to="/dashboard"
             className="grid size-10 shrink-0 place-items-center rounded-xl bg-primary text-primary-foreground transition-transform hover:scale-105"
             aria-label="Ir al resumen"
           >
@@ -68,8 +68,7 @@ export function Sidebar({
                   return (
                     <SimpleTooltip key={item.href} label={item.hint ?? item.label} side="right">
                       <Link
-                        href={item.href}
-                       
+                        to={item.href}
                         aria-current={active ? 'page' : undefined}
                         className={cn(
                           'relative grid size-10 place-items-center rounded-xl transition-colors',
@@ -136,7 +135,7 @@ export function Sidebar({
               </div>
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild>
-                <Link href="/configuracion">
+                <Link to="/configuracion">
                   <Settings />
                   Configuración
                 </Link>
@@ -171,7 +170,6 @@ export function Sidebar({
               variant="ghost"
               size="icon-sm"
               className="shrink-0 lg:hidden"
-             
               aria-label="Cerrar menú"
             >
               <X />
@@ -180,7 +178,7 @@ export function Sidebar({
 
           <div className="px-4 pb-4">
             <Button asChild className="w-full">
-              <Link href="/ordenes/nueva">
+              <Link to="/ordenes/nueva">
                 <Plus />
                 Nueva orden
               </Link>
@@ -210,8 +208,7 @@ export function Sidebar({
                           />
                         ) : null}
                         <Link
-                          href={item.href}
-                         
+                          to={item.href}
                           aria-current={active ? 'page' : undefined}
                           className={cn(
                             'flex items-center gap-2.5 rounded-lg py-2 pl-3 pr-2 text-sm transition-colors',

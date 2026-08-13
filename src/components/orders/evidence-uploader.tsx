@@ -1,7 +1,6 @@
 'use client';
 
 import * as React from 'react';
-import Image from 'next/image';
 import { Camera, ImagePlus, Loader2, Trash2, Upload } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -139,13 +138,10 @@ export function EvidenceUploader({
               className="flex gap-3 rounded-xl border border-border/70 bg-card p-3"
             >
               <div className="relative size-20 shrink-0 overflow-hidden rounded-lg bg-muted">
-                <Image
+                <img
                   src={item.url}
                   alt={`Evidencia ${index + 1}`}
-                  fill
-                  sizes="80px"
-                  className="object-cover"
-                  unoptimized
+                  className="h-full w-full object-cover"
                 />
               </div>
 

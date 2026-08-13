@@ -3,10 +3,13 @@
  * Si falta, se usa el backend desplegado en Render.
  * Se recorta la barra final para no generar rutas con doble slash.
  */
-const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://lavadero-s88q.onrender.com').replace(
-  /\/+$/,
-  '',
-);
+const getApiUrl = () => {
+  const env = typeof import.meta !== 'undefined' ? (import.meta as unknown as { env: Record<string, string | undefined> }).env : undefined;
+  const url = env?.VITE_API_URL || env?.NEXT_PUBLIC_API_URL || 'https://lavadero-s88q.onrender.com';
+  return url.replace(/\/+$/, '');
+};
+
+const API_URL = getApiUrl();
 
 const TOKEN_KEY = 'lavadero.token';
 

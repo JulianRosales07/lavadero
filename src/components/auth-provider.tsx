@@ -1,14 +1,16 @@
 'use client';
 
 import * as React from 'react';
-import { useRouter } from 'next/navigation';
+import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { api, tokenStore } from '@/lib/api';
 import type { AuthUser } from '@/lib/types';
 
 interface AuthContextValue {
   user: AuthUser | null;
+  session: AuthUser | null;
   loading: boolean;
+  isLoading: boolean;
   isAdmin: boolean;
   login: (email: string, password: string) => Promise<AuthUser>;
   logout: () => void;
@@ -18,7 +20,7 @@ interface AuthContextValue {
 const AuthContext = React.createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const router = useRouter();
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [user, setUser] = React.useState<AuthUser | null>(null);
   const [loading, setLoading] = React.useState(true);
@@ -58,11 +60,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     tokenStore.clear();
     setUser(null);
     queryClient.clear();
-    router.replace('/login');
-  }, [queryClient, router]);
+    navigate('/login', { replace: true });
+  }, [queryClient, navigate]);
 
   const value = React.useMemo<AuthContextValue>(
-    () => ({ user, loading, isAdmin: user?.role === 'ADMIN', login, logout, refresh }),
+    () => ({
+      user,
+      session: user,
+      loading,
+      isLoading: loading,
+      isAdmin: user?.role === 'ADMIN',
+      login,
+      logout,
+      refresh,
+    }),
     [user, loading, login, logout, refresh],
   );
 

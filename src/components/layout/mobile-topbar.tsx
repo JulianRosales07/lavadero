@@ -1,8 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { ArrowLeft, Car, Droplets, Loader2, Search, User, X } from 'lucide-react';
 import { ThemeToggle } from '@/components/layout/theme-toggle';
@@ -19,7 +18,8 @@ import { fullName } from '@/lib/utils';
 
 /** Título de la pantalla actual, para la cabecera compacta. */
 function useScreenTitle() {
-  const pathname = usePathname();
+  const location = useLocation();
+  const pathname = location.pathname;
 
   return React.useMemo(() => {
     if (pathname.startsWith('/ordenes/nueva')) return { title: 'Nueva orden', back: '/ordenes' };
@@ -38,7 +38,7 @@ function useScreenTitle() {
  * búsqueda a pantalla completa. Solo se muestra por debajo de lg.
  */
 export function MobileTopBar() {
-  const router = useRouter();
+  const navigate = useNavigate();
   const { data: business } = useBusiness();
   const { title, back } = useScreenTitle();
   const [searchOpen, setSearchOpen] = React.useState(false);
@@ -52,14 +52,14 @@ export function MobileTopBar() {
           <Button
             variant="ghost"
             size="icon-sm"
-            onClick={() => router.push(back)}
+            onClick={() => navigate(back)}
             aria-label="Volver"
           >
             <ArrowLeft />
           </Button>
         ) : (
           <Link
-            href="/dashboard"
+            to="/dashboard"
             className="grid size-9 shrink-0 place-items-center rounded-xl bg-primary text-primary-foreground"
             aria-label="Inicio"
           >
@@ -98,7 +98,7 @@ function MobileSearch({
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
-  const router = useRouter();
+  const navigate = useNavigate();
   const [term, setTerm] = React.useState('');
   const [debounced, setDebounced] = React.useState('');
 
@@ -136,7 +136,7 @@ function MobileSearch({
 
   const go = (href: string) => {
     onOpenChange(false);
-    router.push(href);
+    navigate(href);
   };
 
   return (

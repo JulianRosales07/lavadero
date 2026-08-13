@@ -1,7 +1,7 @@
-﻿'use client';
+'use client';
 
 import * as React from 'react';
-import { useRouter } from 'next/navigation';
+import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Car, Loader2, Search, User } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -14,7 +14,7 @@ import { fullName } from '@/lib/utils';
 
 /** Buscador global del header: encuentra órdenes por número/placa y clientes. */
 export function GlobalSearch() {
-  const router = useRouter();
+  const navigate = useNavigate();
   const inputRef = React.useRef<HTMLInputElement>(null);
   const [term, setTerm] = React.useState('');
   const [debounced, setDebounced] = React.useState('');
@@ -64,7 +64,7 @@ export function GlobalSearch() {
   const go = (href: string) => {
     setOpen(false);
     setTerm('');
-    router.push(href);
+    navigate(href);
   };
 
   return (

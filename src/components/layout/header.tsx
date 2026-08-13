@@ -1,6 +1,6 @@
 'use client';
 
-import Link from 'next/link';
+import { Link } from 'react-router-dom';
 import { Plus } from 'lucide-react';
 import { GlobalSearch } from '@/components/layout/global-search';
 import { ThemeToggle } from '@/components/layout/theme-toggle';
@@ -17,7 +17,7 @@ export function Header() {
 
       <div className="ml-auto flex items-center gap-1.5">
         <Button asChild size="sm" className="hidden sm:inline-flex">
-          <Link href="/ordenes/nueva">
+          <Link to="/ordenes/nueva">
             <Plus />
             Nueva orden
           </Link>
