@@ -71,7 +71,7 @@ async function request<T>(
   } catch {
     throw new ApiError(
       0,
-      `No se pudo conectar con el servidor (${API_URL}). Revisa NEXT_PUBLIC_API_URL en frontend/.env.local`,
+      `No se pudo conectar con el servidor (${API_URL}). Si el backend está en Render, puede estar iniciando tras inactividad. Espera unos segundos o revisa VITE_API_URL en .env`,
     );
   }
 
