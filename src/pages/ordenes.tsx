@@ -26,6 +26,7 @@ import { useOrders } from '@/hooks/use-orders';
 import { ORDER_STATUS_META, VEHICLE_TYPE_META } from '@/lib/constants';
 import { formatMinutes, formatSmart, money } from '@/lib/format';
 import { fullName } from '@/lib/utils';
+import { useAuth } from '@/components/auth-provider';
 
 const STATUS_TABS: { value: string; label: string }[] = [
   { value: 'ACTIVE', label: 'Activas' },
@@ -43,24 +44,18 @@ const statusParam = (tab: string) =>
 
 export default function OrdersPage() {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  const { user } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
 
-  const [tab, setTab] = React.useState(searchParams.get('status') ?? 'ACTIVE');
-  const [term, setTerm] = React.useState(searchParams.get('q') ?? '');
-  const [query, setQuery] = React.useState(searchParams.get('q') ?? '');
-  const [range, setRange] = React.useState<RangeValue>({ preset: 'month' });
+  const tab = searchParams.get('status') ?? 'ACTIVE';
+  const query = searchParams.get('q') ?? '';
+
+  const [term, setTerm] = React.useState(query);
+  const [range, setRange] = React.useState<RangeValue>({ preset: 'today' });
   const [page, setPage] = React.useState(1);
 
-  React.useEffect(() => {
-    const timer = setTimeout(() => {
-      setQuery(term.trim());
-      setPage(1);
-    }, 300);
-    return () => clearTimeout(timer);
-  }, [term]);
-
-  // Al buscar por texto conviene mirar todo el histórico, no solo el rango.
-  const searching = query.length > 0;
+  // Si el usuario escribe una búsqueda, desactivamos el filtro de fecha
+  const searching = term.trim().length >= 2;
 
   const { data, isLoading, isError, error, refetch } = useOrders({
     status: statusParam(tab),
@@ -72,6 +67,17 @@ export default function OrdersPage() {
     pageSize: 25,
   });
 
+  React.useEffect(() => {
+    const timer = setTimeout(() => {
+      const params = new URLSearchParams(searchParams);
+      if (term.trim()) params.set('q', term.trim());
+      else params.delete('q');
+      setSearchParams(params);
+      setPage(1);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [term, searchParams, setSearchParams]);
+
   const orders = data?.data ?? [];
   const totalPages = Math.max(1, Math.ceil((data?.total ?? 0) / (data?.pageSize ?? 25)));
 
@@ -81,11 +87,12 @@ export default function OrdersPage() {
         title="Órdenes"
         description="Historial y seguimiento de todas las órdenes de servicio."
         actions={
-          // En móvil esta acción la cubre el botón flotante de la barra inferior
-          <Button className="hidden sm:inline-flex" onClick={() => navigate('/ordenes/nueva')}>
-            <Plus />
-            Nueva orden
-          </Button>
+          user?.role === 'ADMIN' ? (
+            <Button className="hidden sm:inline-flex" onClick={() => navigate('/ordenes/nueva')}>
+              <Plus />
+              Nueva orden
+            </Button>
+          ) : null
         }
       />
 
@@ -94,7 +101,9 @@ export default function OrdersPage() {
           <Tabs
             value={tab}
             onValueChange={(value) => {
-              setTab(value);
+              const params = new URLSearchParams(searchParams);
+              params.set('status', value);
+              setSearchParams(params);
               setPage(1);
             }}
             className="w-full max-w-full"
@@ -177,10 +186,12 @@ export default function OrdersPage() {
               title="Sin órdenes para este filtro"
               description="Cambia el estado o el rango de fechas, o crea una nueva orden."
               action={
-                <Button size="sm" onClick={() => navigate('/ordenes/nueva')}>
-                  <Plus />
-                  Nueva orden
-                </Button>
+                user?.role === 'ADMIN' ? (
+                  <Button size="sm" onClick={() => navigate('/ordenes/nueva')}>
+                    <Plus />
+                    Nueva orden
+                  </Button>
+                ) : undefined
               }
             />
           ) : (

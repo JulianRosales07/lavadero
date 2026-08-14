@@ -3,12 +3,14 @@
 import * as React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import {
+  BarChart3,
   ClipboardList,
   LayoutDashboard,
   LogOut,
   type LucideIcon,
   MoreHorizontal,
   Plus,
+  Settings,
   Users,
   Wallet,
 } from 'lucide-react';
@@ -43,8 +45,8 @@ const ROLE_TABS: Record<UserRole, Tab[]> = {
   OPERATOR: [
     { href: '/dashboard', label: 'Inicio', icon: LayoutDashboard },
     { href: '/ordenes', label: 'Órdenes', icon: ClipboardList },
-    { href: '/reportes', label: 'Ganancias', icon: Wallet },
-    { href: '/configuracion', label: 'Mi perfil', icon: Users },
+    { href: '/reportes', label: 'Ganancias', icon: BarChart3 },
+    { href: '/configuracion', label: 'Mi perfil', icon: Settings },
   ],
 };
 
@@ -72,8 +74,8 @@ export function MobileNav() {
 
   return (
     <>
-      {/* Botón de acción principal: solo disponible para usuarios con permiso de creación */}
-      {user?.role !== 'OPERATOR' && (
+      {/* Botón de acción principal: solo disponible para administradores */}
+      {user?.role === 'ADMIN' && (
         <Link
           to="/ordenes/nueva"
           className={cn(

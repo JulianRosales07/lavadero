@@ -30,10 +30,10 @@ export const NAV_SECTIONS: NavSection[] = [
   {
     title: 'Operación',
     items: [
-      { href: '/dashboard', label: 'Resumen', hint: 'Dashboard', icon: LayoutDashboard, roles: ['ADMIN', 'CASHIER', 'OPERATOR'] },
-      { href: '/ordenes', label: 'Órdenes', icon: ClipboardList, roles: ['ADMIN', 'CASHIER', 'OPERATOR'] },
-      { href: '/clientes', label: 'Clientes', icon: Users, roles: ['ADMIN', 'CASHIER'] },
-      { href: '/caja', label: 'Caja', icon: Wallet, roles: ['ADMIN', 'CASHIER'] },
+      { href: '/dashboard', label: 'Resumen', hint: 'Dashboard', icon: LayoutDashboard, roles: ['ADMIN', 'OPERATOR'] },
+      { href: '/ordenes', label: 'Órdenes', icon: ClipboardList, roles: ['ADMIN', 'OPERATOR'] },
+      { href: '/clientes', label: 'Clientes', icon: Users, roles: ['ADMIN'] },
+      { href: '/caja', label: 'Caja', icon: Wallet, roles: ['ADMIN'] },
     ],
   },
   {
@@ -47,7 +47,7 @@ export const NAV_SECTIONS: NavSection[] = [
   {
     title: 'Análisis',
     items: [
-      { href: '/reportes', label: 'Reportes', icon: BarChart3, roles: ['ADMIN', 'CASHIER', 'OPERATOR'] },
+      { href: '/reportes', label: 'Reportes', icon: BarChart3, roles: ['ADMIN', 'OPERATOR'] },
       { href: '/configuracion', label: 'Configuración', icon: Settings, roles: ['ADMIN', 'OPERATOR'] },
     ],
   },

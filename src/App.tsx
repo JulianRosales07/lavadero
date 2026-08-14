@@ -72,7 +72,7 @@ function App() {
         <Route
           path="ordenes/nueva"
           element={
-            <ProtectedRoute allowedRoles={['ADMIN', 'CASHIER']}>
+            <ProtectedRoute allowedRoles={['ADMIN']}>
               <NuevaOrdenPage />
             </ProtectedRoute>
           }
@@ -81,7 +81,7 @@ function App() {
         <Route
           path="clientes"
           element={
-            <ProtectedRoute allowedRoles={['ADMIN', 'CASHIER']}>
+            <ProtectedRoute allowedRoles={['ADMIN']}>
               <ClientesPage />
             </ProtectedRoute>
           }
@@ -113,7 +113,7 @@ function App() {
         <Route
           path="caja"
           element={
-            <ProtectedRoute allowedRoles={['ADMIN', 'CASHIER']}>
+            <ProtectedRoute allowedRoles={['ADMIN']}>
               <CajaPage />
             </ProtectedRoute>
           }
