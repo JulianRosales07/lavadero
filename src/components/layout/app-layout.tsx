@@ -62,7 +62,7 @@ export default function AppLayout() {
   }
 
   return (
-    <div className="min-h-screen w-full max-w-full overflow-x-hidden bg-background">
+    <div className="min-h-screen bg-background">
       <CurrencySync />
 
       {/* Escritorio: riel + panel */}
@@ -72,7 +72,7 @@ export default function AppLayout() {
       <MobileTopBar />
 
       <div
-        className="flex min-h-screen w-full max-w-full flex-col overflow-x-hidden transition-[padding] duration-300 ease-out lg:pl-[var(--sidebar-width)]"
+        className="flex min-h-screen flex-col transition-[padding] duration-300 ease-out lg:pl-[var(--sidebar-width)]"
         style={
           {
             '--sidebar-width': `${collapsed ? railWidth : fullWidth}px`,
@@ -82,10 +82,10 @@ export default function AppLayout() {
         {/* Escritorio: buscador y acciones */}
         <Header />
 
-        <main className="flex-1 w-full max-w-full overflow-x-hidden px-3.5 pb-28 pt-3.5 sm:px-6 sm:pb-6 sm:pt-6">
+        <main className="flex-1 px-4 pb-28 pt-4 sm:px-6 sm:pb-6 sm:pt-6">
           {/* La animación de entrada solo en escritorio: en móvil desplazar
               todo el contenido en cada navegación se siente lento. */}
-          <div className="mx-auto w-full max-w-[1600px] min-w-0 space-y-4 sm:space-y-6 lg:animate-fade-in">
+          <div className="mx-auto w-full max-w-[1600px] space-y-4 sm:space-y-6 lg:animate-fade-in">
             <Outlet />
           </div>
         </main>
