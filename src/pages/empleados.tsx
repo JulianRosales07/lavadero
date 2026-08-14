@@ -98,64 +98,35 @@ export default function EmployeesPage() {
               }
             />
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Empleado</TableHead>
-                  <TableHead className="hidden sm:table-cell">Cargo</TableHead>
-                  <TableHead className="hidden md:table-cell">Teléfono</TableHead>
-                  <TableHead className="text-center">Órdenes activas</TableHead>
-                  <TableHead className="hidden lg:table-cell text-center">Hoy</TableHead>
-                  <TableHead className="text-right">Propinas hoy</TableHead>
-                  <TableHead>Estado</TableHead>
-                  <TableHead className="w-[60px]" />
-                </TableRow>
-              </TableHeader>
-              <TableBody>
+            <>
+              {/* Móvil: tarjetas */}
+              <ul className="divide-y divide-border/60 md:hidden">
                 {employees?.map((employee) => (
-                  <TableRow key={employee.id}>
-                    <TableCell>
-                      <div className="flex items-center gap-3">
-                        <span className="grid size-9 shrink-0 place-items-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
+                  <li key={employee.id} className="p-4 space-y-3">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <span className="grid size-10 shrink-0 place-items-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
                           {initials(employee.name)}
                         </span>
-                        <p className="font-medium">{employee.name}</p>
+                        <div className="min-w-0">
+                          <p className="font-semibold text-sm truncate">{employee.name}</p>
+                          <div className="flex flex-wrap items-center gap-1.5 mt-0.5">
+                            <Badge variant="muted" className="text-[11px] px-1.5 py-0">
+                              {employee.position}
+                            </Badge>
+                            {employee.status === 'ACTIVE' ? (
+                              <Badge variant="success" className="text-[11px] px-1.5 py-0">
+                                Activo
+                              </Badge>
+                            ) : (
+                              <Badge variant="muted" className="text-[11px] px-1.5 py-0">
+                                Inactivo
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
                       </div>
-                    </TableCell>
-                    <TableCell className="hidden sm:table-cell">
-                      <Badge variant="muted">{employee.position}</Badge>
-                    </TableCell>
-                    <TableCell className="hidden md:table-cell">
-                      {employee.phone ? (
-                        <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                          <Phone className="size-3.5" aria-hidden />
-                          {employee.phone}
-                        </span>
-                      ) : (
-                        <span className="text-sm text-muted-foreground">—</span>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-center">
-                      {employee.activeOrders && employee.activeOrders > 0 ? (
-                        <Badge variant="warning">{employee.activeOrders}</Badge>
-                      ) : (
-                        <span className="text-sm text-muted-foreground">0</span>
-                      )}
-                    </TableCell>
-                    <TableCell className="hidden text-center lg:table-cell">
-                      <span className="text-sm tabular-nums">{employee.finishedToday ?? 0}</span>
-                    </TableCell>
-                    <TableCell className="text-right font-medium tabular-nums">
-                      {money(employee.tipsToday)}
-                    </TableCell>
-                    <TableCell>
-                      {employee.status === 'ACTIVE' ? (
-                        <Badge variant="success">Activo</Badge>
-                      ) : (
-                        <Badge variant="muted">Inactivo</Badge>
-                      )}
-                    </TableCell>
-                    <TableCell>
+
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button variant="ghost" size="icon-sm" aria-label="Acciones">
@@ -184,11 +155,144 @@ export default function EmployeesPage() {
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2 rounded-lg bg-muted/40 p-2.5 text-xs">
+                      <div>
+                        <span className="text-muted-foreground block">Órdenes activas</span>
+                        <span className="font-medium text-foreground">
+                          {employee.activeOrders && employee.activeOrders > 0 ? (
+                            <span className="text-amber-600 dark:text-amber-400 font-semibold">
+                              {employee.activeOrders} activa{employee.activeOrders > 1 ? 's' : ''}
+                            </span>
+                          ) : (
+                            '0'
+                          )}
+                        </span>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-muted-foreground block">Propinas hoy</span>
+                        <span className="font-medium text-emerald-600 dark:text-emerald-400 tabular-nums">
+                          {money(employee.tipsToday)}
+                        </span>
+                      </div>
+                    </div>
+
+                    {employee.phone ? (
+                      <div className="flex items-center justify-between text-xs text-muted-foreground pt-1">
+                        <a
+                          href={`tel:${employee.phone}`}
+                          className="flex items-center gap-1.5 text-primary hover:underline"
+                        >
+                          <Phone className="size-3.5" aria-hidden />
+                          <span>{employee.phone}</span>
+                        </a>
+                        <span>{employee.finishedToday ?? 0} órdenes hoy</span>
+                      </div>
+                    ) : (
+                      <div className="text-xs text-muted-foreground text-right pt-1">
+                        <span>{employee.finishedToday ?? 0} órdenes hoy</span>
+                      </div>
+                    )}
+                  </li>
                 ))}
-              </TableBody>
-            </Table>
+              </ul>
+
+              {/* Escritorio: tabla */}
+              <div className="hidden md:block">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Empleado</TableHead>
+                      <TableHead className="hidden sm:table-cell">Cargo</TableHead>
+                      <TableHead className="hidden md:table-cell">Teléfono</TableHead>
+                      <TableHead className="text-center">Órdenes activas</TableHead>
+                      <TableHead className="hidden lg:table-cell text-center">Hoy</TableHead>
+                      <TableHead className="text-right">Propinas hoy</TableHead>
+                      <TableHead>Estado</TableHead>
+                      <TableHead className="w-[60px]" />
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {employees?.map((employee) => (
+                      <TableRow key={employee.id}>
+                        <TableCell>
+                          <div className="flex items-center gap-3">
+                            <span className="grid size-9 shrink-0 place-items-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
+                              {initials(employee.name)}
+                            </span>
+                            <p className="font-medium">{employee.name}</p>
+                          </div>
+                        </TableCell>
+                        <TableCell className="hidden sm:table-cell">
+                          <Badge variant="muted">{employee.position}</Badge>
+                        </TableCell>
+                        <TableCell className="hidden md:table-cell">
+                          {employee.phone ? (
+                            <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                              <Phone className="size-3.5" aria-hidden />
+                              {employee.phone}
+                            </span>
+                          ) : (
+                            <span className="text-sm text-muted-foreground">—</span>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          {employee.activeOrders && employee.activeOrders > 0 ? (
+                            <Badge variant="warning">{employee.activeOrders}</Badge>
+                          ) : (
+                            <span className="text-sm text-muted-foreground">0</span>
+                          )}
+                        </TableCell>
+                        <TableCell className="hidden text-center lg:table-cell">
+                          <span className="text-sm tabular-nums">{employee.finishedToday ?? 0}</span>
+                        </TableCell>
+                        <TableCell className="text-right font-medium tabular-nums">
+                          {money(employee.tipsToday)}
+                        </TableCell>
+                        <TableCell>
+                          {employee.status === 'ACTIVE' ? (
+                            <Badge variant="success">Activo</Badge>
+                          ) : (
+                            <Badge variant="muted">Inactivo</Badge>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon-sm" aria-label="Acciones">
+                                <MoreHorizontal />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem
+                                onClick={() => setHistoryEmployee({ id: employee.id, name: employee.name })}
+                              >
+                                <BarChart3 />
+                                Ver historial
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => {
+                                  setEditing(employee);
+                                  setDialogOpen(true);
+                                }}
+                              >
+                                <Pencil />
+                                Editar
+                              </DropdownMenuItem>
+                              <DropdownMenuItem destructive onClick={() => setToDelete(employee)}>
+                                <Trash2 />
+                                Eliminar
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </>
           )}
         </CardContent>
       </Card>

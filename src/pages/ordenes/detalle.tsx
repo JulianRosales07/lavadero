@@ -157,31 +157,32 @@ export default function OrderDetailPage() {
         title={`Orden ${order.number}`}
         description={`Ingreso ${formatDateTime(order.checkInAt)}`}
         actions={
-          <>
-            <Button variant="outline" onClick={() => navigate('/ordenes')}>
+          <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+            <Button variant="outline" className="hidden sm:inline-flex" onClick={() => navigate('/ordenes')}>
               <ArrowLeft />
               Volver
             </Button>
-            <Button variant="outline" onClick={() => setTicketOpen(true)}>
-              <Printer />
-              Ticket
+            <Button variant="outline" size="sm" className="flex-1 sm:flex-none" onClick={() => setTicketOpen(true)}>
+              <Printer className="size-4" />
+              <span>Ticket</span>
             </Button>
-            <Button variant="outline" onClick={onWhatsApp}>
-              <MessageCircle />
-              WhatsApp
+            <Button variant="outline" size="sm" className="flex-1 sm:flex-none" onClick={onWhatsApp}>
+              <MessageCircle className="size-4 text-emerald-600 dark:text-emerald-400" />
+              <span>WhatsApp</span>
             </Button>
             {editable ? (
               <>
-                {/* El empleado solo puede cambiar el estado: Iniciar / Marcar como listo */}
                 {!isOperator && (
-                  <Button variant="outline" onClick={() => setAddServicesOpen(true)}>
-                    <Plus />
-                    Agregar servicio
+                  <Button variant="outline" size="sm" className="flex-1 sm:flex-none" onClick={() => setAddServicesOpen(true)}>
+                    <Plus className="size-4" />
+                    <span>Servicio</span>
                   </Button>
                 )}
                 {next ? (
                   <Button
                     variant="secondary"
+                    size="sm"
+                    className="flex-1 sm:flex-none"
                     loading={changeStatus.isPending}
                     onClick={() =>
                       void changeStatus.mutateAsync({ id: order.id, status: next.status })
@@ -191,14 +192,14 @@ export default function OrderDetailPage() {
                   </Button>
                 ) : null}
                 {!isOperator && (
-                  <Button variant="success" onClick={() => setCheckoutOpen(true)}>
-                    <Banknote />
-                    Cobrar
+                  <Button variant="success" size="sm" className="w-full sm:w-auto font-semibold" onClick={() => setCheckoutOpen(true)}>
+                    <Banknote className="size-4" />
+                    <span>Cobrar</span>
                   </Button>
                 )}
               </>
             ) : null}
-          </>
+          </div>
         }
       />
 

@@ -73,36 +73,38 @@ export default function ReportsPage() {
         <EmployeeEarningsTab range={range} />
       ) : (
         <Tabs defaultValue="ventas">
-          <TabsList className="h-auto flex-wrap justify-start">
-            <TabsTrigger value="ventas">
-              <CircleDollarSign className="size-4" />
-              Ventas
-            </TabsTrigger>
-            <TabsTrigger value="servicios">
-              <Sparkles className="size-4" />
-              Servicios
-            </TabsTrigger>
-            <TabsTrigger value="clientes">
-              <Users className="size-4" />
-              Clientes
-            </TabsTrigger>
-            <TabsTrigger value="propinas">
-              <HandCoins className="size-4" />
-              Propinas
-            </TabsTrigger>
-            <TabsTrigger value="pagos">
-              <Wallet className="size-4" />
-              Métodos de pago
-            </TabsTrigger>
-            <TabsTrigger value="empleados">
-              <BarChart3 className="size-4" />
-              Empleados
-            </TabsTrigger>
-            <TabsTrigger value="comisiones">
-              <TrendingUp className="size-4" />
-              Comisiones 50%
-            </TabsTrigger>
-          </TabsList>
+          <div className="overflow-x-auto no-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0">
+            <TabsList className="inline-flex w-max sm:w-auto h-auto flex-nowrap sm:flex-wrap justify-start gap-1 p-1">
+              <TabsTrigger value="ventas" className="text-xs sm:text-sm">
+                <CircleDollarSign className="size-4" />
+                Ventas
+              </TabsTrigger>
+              <TabsTrigger value="servicios" className="text-xs sm:text-sm">
+                <Sparkles className="size-4" />
+                Servicios
+              </TabsTrigger>
+              <TabsTrigger value="clientes" className="text-xs sm:text-sm">
+                <Users className="size-4" />
+                Clientes
+              </TabsTrigger>
+              <TabsTrigger value="propinas" className="text-xs sm:text-sm">
+                <HandCoins className="size-4" />
+                Propinas
+              </TabsTrigger>
+              <TabsTrigger value="pagos" className="text-xs sm:text-sm">
+                <Wallet className="size-4" />
+                Métodos de pago
+              </TabsTrigger>
+              <TabsTrigger value="empleados" className="text-xs sm:text-sm">
+                <BarChart3 className="size-4" />
+                Empleados
+              </TabsTrigger>
+              <TabsTrigger value="comisiones" className="text-xs sm:text-sm">
+                <TrendingUp className="size-4" />
+                Comisiones 50%
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
           <TabsContent value="ventas">
             <SalesTab range={range} />

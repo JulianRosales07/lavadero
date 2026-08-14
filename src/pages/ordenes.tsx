@@ -98,13 +98,15 @@ export default function OrdersPage() {
               setPage(1);
             }}
           >
-            <TabsList className="h-auto flex-wrap justify-start">
-              {STATUS_TABS.map((item) => (
-                <TabsTrigger key={item.value} value={item.value}>
-                  {item.label}
-                </TabsTrigger>
-              ))}
-            </TabsList>
+            <div className="overflow-x-auto no-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0">
+              <TabsList className="inline-flex w-max sm:w-auto h-auto flex-nowrap sm:flex-wrap justify-start gap-1 p-1">
+                {STATUS_TABS.map((item) => (
+                  <TabsTrigger key={item.value} value={item.value} className="text-xs sm:text-sm">
+                    {item.label}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+            </div>
           </Tabs>
 
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">

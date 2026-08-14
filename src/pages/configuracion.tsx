@@ -61,24 +61,26 @@ export default function SettingsPage() {
       />
 
       <Tabs defaultValue={initialTab}>
-        <TabsList>
-          <TabsTrigger value="negocio">
-            <Building2 className="size-4" />
-            Negocio
-          </TabsTrigger>
-          <TabsTrigger value="ticket">
-            <Printer className="size-4" />
-            Ticket
-          </TabsTrigger>
-          <TabsTrigger value="factus">
-            <FileText className="size-4" />
-            Facturación
-          </TabsTrigger>
-          <TabsTrigger value="seguridad">
-            <KeyRound className="size-4" />
-            Seguridad
-          </TabsTrigger>
-        </TabsList>
+        <div className="overflow-x-auto no-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0">
+          <TabsList className="inline-flex w-max sm:w-auto h-auto flex-nowrap sm:flex-wrap justify-start gap-1 p-1">
+            <TabsTrigger value="negocio" className="text-xs sm:text-sm">
+              <Building2 className="size-4" />
+              Negocio
+            </TabsTrigger>
+            <TabsTrigger value="ticket" className="text-xs sm:text-sm">
+              <Printer className="size-4" />
+              Ticket
+            </TabsTrigger>
+            <TabsTrigger value="factus" className="text-xs sm:text-sm">
+              <FileText className="size-4" />
+              Facturación
+            </TabsTrigger>
+            <TabsTrigger value="seguridad" className="text-xs sm:text-sm">
+              <KeyRound className="size-4" />
+              Seguridad
+            </TabsTrigger>
+          </TabsList>
+        </div>
 
         <TabsContent value="negocio">
           <BusinessTab />

@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import * as React from 'react';
 import {
@@ -211,72 +211,129 @@ export default function CashPage() {
                 description="Los cobros y gastos registrados aparecerán aquí."
               />
             ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Fecha</TableHead>
-                    <TableHead>Concepto</TableHead>
-                    <TableHead className="hidden sm:table-cell">Detalle</TableHead>
-                    <TableHead className="text-right">Monto</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
+              <>
+                {/* Móvil: lista de movimientos */}
+                <ul className="divide-y divide-border/60 md:hidden">
                   {cash?.movements.map((movement) => {
                     const income = movement.kind === 'INCOME';
                     return (
-                      <TableRow key={`${movement.kind}-${movement.id}`}>
-                        <TableCell>
-                          <span className="text-sm text-muted-foreground">
-                            {formatSmart(movement.at)}
-                          </span>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            {income ? (
-                              <ArrowUpRight
-                                className="size-4 text-emerald-600 dark:text-emerald-400"
-                                aria-hidden
-                              />
-                            ) : (
-                              <ArrowDownRight className="size-4 text-destructive" aria-hidden />
-                            )}
+                      <li key={`${movement.kind}-${movement.id}`} className="p-3.5 space-y-1.5">
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <span className={cn(
+                              'grid size-7 shrink-0 place-items-center rounded-md',
+                              income ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' : 'bg-destructive/10 text-destructive'
+                            )}>
+                              {income ? (
+                                <ArrowUpRight className="size-4" aria-hidden />
+                              ) : (
+                                <ArrowDownRight className="size-4" aria-hidden />
+                              )}
+                            </span>
                             <div className="min-w-0">
-                              <p className="truncate text-sm font-medium">{movement.description}</p>
+                              <p className="font-medium text-sm truncate">{movement.description}</p>
                               {movement.reference ? (
-                                <p className="font-mono text-xs text-muted-foreground">
-                                  {movement.reference}
-                                </p>
+                                <p className="font-mono text-[11px] text-muted-foreground">{movement.reference}</p>
                               ) : null}
                             </div>
                           </div>
-                        </TableCell>
-                        <TableCell className="hidden sm:table-cell">
-                          <Badge variant={income ? 'muted' : 'destructive'}>
-                            {income
-                              ? PAYMENT_METHOD_META[movement.method as PaymentMethod]?.label ??
-                                movement.method
-                              : EXPENSE_CATEGORY_META[movement.method as ExpenseCategory]?.label ??
-                                'Gasto'}
-                          </Badge>
-                          {movement.tip > 0 ? (
-                            <span className="ml-2 text-xs text-muted-foreground">
-                              propina {money(movement.tip)}
-                            </span>
-                          ) : null}
-                        </TableCell>
-                        <TableCell
-                          className={cn(
-                            'text-right font-medium tabular-nums',
-                            income ? 'text-emerald-600 dark:text-emerald-400' : 'text-destructive',
-                          )}
-                        >
-                          {income ? '+' : '−'} {money(Math.abs(movement.amount))}
-                        </TableCell>
-                      </TableRow>
+
+                          <span className={cn(
+                            'font-bold text-sm tabular-nums shrink-0',
+                            income ? 'text-emerald-600 dark:text-emerald-400' : 'text-destructive'
+                          )}>
+                            {income ? '+' : '−'} {money(Math.abs(movement.amount))}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center justify-between text-xs text-muted-foreground pt-0.5">
+                          <div className="flex items-center gap-1.5">
+                            <Badge variant={income ? 'muted' : 'destructive'} className="text-[10px] px-1.5 py-0">
+                              {income
+                                ? PAYMENT_METHOD_META[movement.method as PaymentMethod]?.label ?? movement.method
+                                : EXPENSE_CATEGORY_META[movement.method as ExpenseCategory]?.label ?? 'Gasto'}
+                            </Badge>
+                            {movement.tip > 0 ? (
+                              <span className="text-[11px] text-muted-foreground">propina {money(movement.tip)}</span>
+                            ) : null}
+                          </div>
+                          <span>{formatSmart(movement.at)}</span>
+                        </div>
+                      </li>
                     );
                   })}
-                </TableBody>
-              </Table>
+                </ul>
+
+                {/* Escritorio: tabla de movimientos */}
+                <div className="hidden md:block">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Fecha</TableHead>
+                        <TableHead>Concepto</TableHead>
+                        <TableHead className="hidden sm:table-cell">Detalle</TableHead>
+                        <TableHead className="text-right">Monto</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {cash?.movements.map((movement) => {
+                        const income = movement.kind === 'INCOME';
+                        return (
+                          <TableRow key={`${movement.kind}-${movement.id}`}>
+                            <TableCell>
+                              <span className="text-sm text-muted-foreground">
+                                {formatSmart(movement.at)}
+                              </span>
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex items-center gap-2">
+                                {income ? (
+                                  <ArrowUpRight
+                                    className="size-4 text-emerald-600 dark:text-emerald-400"
+                                    aria-hidden
+                                  />
+                                ) : (
+                                  <ArrowDownRight className="size-4 text-destructive" aria-hidden />
+                                )}
+                                <div className="min-w-0">
+                                  <p className="truncate text-sm font-medium">{movement.description}</p>
+                                  {movement.reference ? (
+                                    <p className="font-mono text-xs text-muted-foreground">
+                                      {movement.reference}
+                                    </p>
+                                  ) : null}
+                                </div>
+                              </div>
+                            </TableCell>
+                            <TableCell className="hidden sm:table-cell">
+                              <Badge variant={income ? 'muted' : 'destructive'}>
+                                {income
+                                  ? PAYMENT_METHOD_META[movement.method as PaymentMethod]?.label ??
+                                    movement.method
+                                  : EXPENSE_CATEGORY_META[movement.method as ExpenseCategory]?.label ??
+                                    'Gasto'}
+                              </Badge>
+                              {movement.tip > 0 ? (
+                                <span className="ml-2 text-xs text-muted-foreground">
+                                  propina {money(movement.tip)}
+                                </span>
+                              ) : null}
+                            </TableCell>
+                            <TableCell
+                              className={cn(
+                                'text-right font-medium tabular-nums',
+                                income ? 'text-emerald-600 dark:text-emerald-400' : 'text-destructive',
+                              )}
+                            >
+                              {income ? '+' : '−'} {money(Math.abs(movement.amount))}
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </div>
+              </>
             )}
           </CardContent>
         </Card>
@@ -304,51 +361,94 @@ export default function CashPage() {
               }
             />
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Fecha</TableHead>
-                  <TableHead>Concepto</TableHead>
-                  <TableHead>Categoría</TableHead>
-                  <TableHead className="text-right">Monto</TableHead>
-                  <TableHead className="w-[60px]" />
-                </TableRow>
-              </TableHeader>
-              <TableBody>
+            <>
+              {/* Móvil: lista de gastos */}
+              <ul className="divide-y divide-border/60 md:hidden">
                 {expenses?.data.map((expense) => (
-                  <TableRow key={expense.id}>
-                    <TableCell>
-                      <span className="text-sm text-muted-foreground">
-                        {formatSmart(expense.spentAt)}
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      <p className="text-sm font-medium">{expense.concept}</p>
-                      {expense.notes ? (
-                        <p className="text-xs text-muted-foreground">{expense.notes}</p>
-                      ) : null}
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="muted">{EXPENSE_CATEGORY_META[expense.category].label}</Badge>
-                    </TableCell>
-                    <TableCell className="text-right font-medium tabular-nums text-destructive">
-                      − {money(expense.amount)}
-                    </TableCell>
-                    <TableCell>
-                      <Button
-                        variant="ghost"
-                        size="icon-sm"
-                        className="text-muted-foreground hover:text-destructive"
-                        onClick={() => setToDelete(expense.id)}
-                        aria-label="Eliminar gasto"
-                      >
-                        <Trash2 />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
+                  <li key={expense.id} className="p-3.5 space-y-1.5">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2">
+                          <p className="font-medium text-sm truncate">{expense.concept}</p>
+                          <Badge variant="muted" className="text-[10px] px-1.5 py-0 shrink-0">
+                            {EXPENSE_CATEGORY_META[expense.category].label}
+                          </Badge>
+                        </div>
+                        {expense.notes ? (
+                          <p className="text-xs text-muted-foreground mt-0.5">{expense.notes}</p>
+                        ) : null}
+                      </div>
+
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        <span className="font-bold text-sm tabular-nums text-destructive">
+                          − {money(expense.amount)}
+                        </span>
+                        <Button
+                          variant="ghost"
+                          size="icon-sm"
+                          className="size-7"
+                          onClick={() => setToDelete(expense.id)}
+                          aria-label="Eliminar gasto"
+                        >
+                          <Trash2 className="size-3.5 text-muted-foreground hover:text-destructive" />
+                        </Button>
+                      </div>
+                    </div>
+                    <div className="text-right text-[11px] text-muted-foreground">
+                      {formatSmart(expense.spentAt)}
+                    </div>
+                  </li>
                 ))}
-              </TableBody>
-            </Table>
+              </ul>
+
+              {/* Escritorio: tabla de gastos */}
+              <div className="hidden md:block">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Fecha</TableHead>
+                      <TableHead>Concepto</TableHead>
+                      <TableHead>Categoría</TableHead>
+                      <TableHead className="text-right">Monto</TableHead>
+                      <TableHead className="w-[60px]" />
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {expenses?.data.map((expense) => (
+                      <TableRow key={expense.id}>
+                        <TableCell>
+                          <span className="text-sm text-muted-foreground">
+                            {formatSmart(expense.spentAt)}
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          <p className="text-sm font-medium">{expense.concept}</p>
+                          {expense.notes ? (
+                            <p className="text-xs text-muted-foreground">{expense.notes}</p>
+                          ) : null}
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="muted">{EXPENSE_CATEGORY_META[expense.category].label}</Badge>
+                        </TableCell>
+                        <TableCell className="text-right font-medium tabular-nums text-destructive">
+                          − {money(expense.amount)}
+                        </TableCell>
+                        <TableCell>
+                          <Button
+                            variant="ghost"
+                            size="icon-sm"
+                            onClick={() => setToDelete(expense.id)}
+                            aria-label="Eliminar gasto"
+                          >
+                            <Trash2 />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </>
           )}
         </CardContent>
       </Card>

@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import * as React from 'react';
 import { BadgePercent, MoreHorizontal, Pencil, Plus, Trash2 } from 'lucide-react';
@@ -98,51 +98,48 @@ export default function PromotionsPage() {
               }
             />
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Promoción</TableHead>
-                  <TableHead>Descuento</TableHead>
-                  <TableHead className="hidden sm:table-cell">Vigencia</TableHead>
-                  <TableHead>Estado</TableHead>
-                  <TableHead className="w-[60px]" />
-                </TableRow>
-              </TableHeader>
-              <TableBody>
+            <>
+              {/* Móvil: tarjetas */}
+              <ul className="divide-y divide-border/60 md:hidden">
                 {promotions?.map((promotion) => (
-                  <TableRow key={promotion.id}>
-                    <TableCell>
-                      <p className="font-medium">{promotion.name}</p>
-                      {promotion.description ? (
-                        <p className="max-w-md truncate text-xs text-muted-foreground">
-                          {promotion.description}
-                        </p>
-                      ) : null}
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="default">
-                        {promotion.type === 'PERCENT'
-                          ? `${promotion.value}%`
-                          : money(promotion.value)}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="hidden sm:table-cell">
-                      <span className="text-sm text-muted-foreground">
-                        {promotion.startsAt || promotion.endsAt
-                          ? `${promotion.startsAt ? formatDate(promotion.startsAt) : 'Desde siempre'} → ${
-                              promotion.endsAt ? formatDate(promotion.endsAt) : 'Sin fin'
-                            }`
-                          : 'Permanente'}
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      {promotion.active ? (
-                        <Badge variant="success">Activa</Badge>
-                      ) : (
-                        <Badge variant="muted">Inactiva</Badge>
-                      )}
-                    </TableCell>
-                    <TableCell>
+                  <li key={promotion.id} className="p-4 space-y-2.5">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center justify-between gap-2">
+                          <p className="font-semibold text-sm tracking-tight truncate">{promotion.name}</p>
+                          <Badge variant="default" className="shrink-0 font-bold text-xs px-2 py-0.5">
+                            {promotion.type === 'PERCENT'
+                              ? `${promotion.value}%`
+                              : money(promotion.value)}
+                          </Badge>
+                        </div>
+
+                        {promotion.description ? (
+                          <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5">
+                            {promotion.description}
+                          </p>
+                        ) : null}
+
+                        <div className="flex flex-wrap items-center gap-2 mt-2">
+                          <span className="text-xs text-muted-foreground">
+                            {promotion.startsAt || promotion.endsAt
+                              ? `${promotion.startsAt ? formatDate(promotion.startsAt) : 'Inicio'} → ${
+                                  promotion.endsAt ? formatDate(promotion.endsAt) : 'Sin fin'
+                                }`
+                              : 'Permanente'}
+                          </span>
+                          {promotion.active ? (
+                            <Badge variant="success" className="text-[11px] px-1.5 py-0">
+                              Activa
+                            </Badge>
+                          ) : (
+                            <Badge variant="muted" className="text-[11px] px-1.5 py-0">
+                              Inactiva
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button variant="ghost" size="icon-sm" aria-label="Acciones">
@@ -165,11 +162,87 @@ export default function PromotionsPage() {
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
+                    </div>
+                  </li>
                 ))}
-              </TableBody>
-            </Table>
+              </ul>
+
+              {/* Escritorio: tabla */}
+              <div className="hidden md:block">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Promoción</TableHead>
+                      <TableHead>Descuento</TableHead>
+                      <TableHead className="hidden sm:table-cell">Vigencia</TableHead>
+                      <TableHead>Estado</TableHead>
+                      <TableHead className="w-[60px]" />
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {promotions?.map((promotion) => (
+                      <TableRow key={promotion.id}>
+                        <TableCell>
+                          <p className="font-medium">{promotion.name}</p>
+                          {promotion.description ? (
+                            <p className="max-w-md truncate text-xs text-muted-foreground">
+                              {promotion.description}
+                            </p>
+                          ) : null}
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="default">
+                            {promotion.type === 'PERCENT'
+                              ? `${promotion.value}%`
+                              : money(promotion.value)}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="hidden sm:table-cell">
+                          <span className="text-sm text-muted-foreground">
+                            {promotion.startsAt || promotion.endsAt
+                              ? `${promotion.startsAt ? formatDate(promotion.startsAt) : 'Desde siempre'} → ${
+                                  promotion.endsAt ? formatDate(promotion.endsAt) : 'Sin fin'
+                                }`
+                              : 'Permanente'}
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          {promotion.active ? (
+                            <Badge variant="success">Activa</Badge>
+                          ) : (
+                            <Badge variant="muted">Inactiva</Badge>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon-sm" aria-label="Acciones">
+                                <MoreHorizontal />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem
+                                onClick={() => {
+                                  setEditing(promotion);
+                                  setDialogOpen(true);
+                                }}
+                              >
+                                <Pencil />
+                                Editar
+                              </DropdownMenuItem>
+                              <DropdownMenuItem destructive onClick={() => setToDelete(promotion)}>
+                                <Trash2 />
+                                Eliminar
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </>
           )}
         </CardContent>
       </Card>

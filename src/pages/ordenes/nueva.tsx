@@ -122,7 +122,7 @@ export default function NewOrderPage() {
         title="Nueva orden"
         description="Cliente, servicios y evidencias en una sola pantalla."
         actions={
-          <Button variant="outline" onClick={() => navigate(-1)}>
+          <Button variant="outline" className="hidden sm:inline-flex" onClick={() => navigate(-1)}>
             <ArrowLeft />
             Volver
           </Button>

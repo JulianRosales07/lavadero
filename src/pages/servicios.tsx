@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import * as React from 'react';
 import { Clock, MoreHorizontal, Pencil, Plus, Sparkles, Trash2 } from 'lucide-react';
@@ -91,48 +91,46 @@ export default function ServicesPage() {
               }
             />
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Servicio</TableHead>
-                  <TableHead className="hidden sm:table-cell">Categoría</TableHead>
-                  <TableHead className="text-right">Precio</TableHead>
-                  <TableHead className="hidden sm:table-cell">Duración</TableHead>
-                  <TableHead>Estado</TableHead>
-                  <TableHead className="w-[60px]" />
-                </TableRow>
-              </TableHeader>
-              <TableBody>
+            <>
+              {/* Móvil: tarjetas */}
+              <ul className="divide-y divide-border/60 md:hidden">
                 {services?.map((service) => (
-                  <TableRow key={service.id}>
-                    <TableCell>
-                      <p className="font-medium">{service.name}</p>
-                      {service.description ? (
-                        <p className="max-w-md truncate text-xs text-muted-foreground">
-                          {service.description}
-                        </p>
-                      ) : null}
-                    </TableCell>
-                    <TableCell className="hidden sm:table-cell">
-                      <Badge variant="muted">{service.category ?? 'Sin categoría'}</Badge>
-                    </TableCell>
-                    <TableCell className="text-right font-medium tabular-nums">
-                      {money(service.price)}
-                    </TableCell>
-                    <TableCell className="hidden sm:table-cell">
-                      <span className="flex items-center gap-1 text-sm text-muted-foreground">
-                        <Clock className="size-3.5" aria-hidden />
-                        {formatMinutes(service.durationMin)}
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      {service.active ? (
-                        <Badge variant="success">Activo</Badge>
-                      ) : (
-                        <Badge variant="muted">Inactivo</Badge>
-                      )}
-                    </TableCell>
-                    <TableCell>
+                  <li key={service.id} className="p-4 space-y-2.5">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center justify-between gap-2">
+                          <p className="font-semibold text-sm tracking-tight truncate">{service.name}</p>
+                          <span className="shrink-0 font-bold text-base tabular-nums text-foreground">
+                            {money(service.price)}
+                          </span>
+                        </div>
+
+                        {service.description ? (
+                          <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5">
+                            {service.description}
+                          </p>
+                        ) : null}
+
+                        <div className="flex flex-wrap items-center gap-2 mt-2">
+                          <Badge variant="muted" className="text-[11px] px-2 py-0.5">
+                            {service.category ?? 'Sin categoría'}
+                          </Badge>
+                          <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                            <Clock className="size-3" aria-hidden />
+                            {formatMinutes(service.durationMin)}
+                          </span>
+                          {service.active ? (
+                            <Badge variant="success" className="text-[11px] px-1.5 py-0">
+                              Activo
+                            </Badge>
+                          ) : (
+                            <Badge variant="muted" className="text-[11px] px-1.5 py-0">
+                              Inactivo
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button variant="ghost" size="icon-sm" aria-label="Acciones">
@@ -155,11 +153,84 @@ export default function ServicesPage() {
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
+                    </div>
+                  </li>
                 ))}
-              </TableBody>
-            </Table>
+              </ul>
+
+              {/* Escritorio: tabla */}
+              <div className="hidden md:block">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Servicio</TableHead>
+                      <TableHead className="hidden sm:table-cell">Categoría</TableHead>
+                      <TableHead className="text-right">Precio</TableHead>
+                      <TableHead className="hidden sm:table-cell">Duración</TableHead>
+                      <TableHead>Estado</TableHead>
+                      <TableHead className="w-[60px]" />
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {services?.map((service) => (
+                      <TableRow key={service.id}>
+                        <TableCell>
+                          <p className="font-medium">{service.name}</p>
+                          {service.description ? (
+                            <p className="max-w-md truncate text-xs text-muted-foreground">
+                              {service.description}
+                            </p>
+                          ) : null}
+                        </TableCell>
+                        <TableCell className="hidden sm:table-cell">
+                          <Badge variant="muted">{service.category ?? 'Sin categoría'}</Badge>
+                        </TableCell>
+                        <TableCell className="text-right font-medium tabular-nums">
+                          {money(service.price)}
+                        </TableCell>
+                        <TableCell className="hidden sm:table-cell">
+                          <span className="flex items-center gap-1 text-sm text-muted-foreground">
+                            <Clock className="size-3.5" aria-hidden />
+                            {formatMinutes(service.durationMin)}
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          {service.active ? (
+                            <Badge variant="success">Activo</Badge>
+                          ) : (
+                            <Badge variant="muted">Inactivo</Badge>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon-sm" aria-label="Acciones">
+                                <MoreHorizontal />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem
+                                onClick={() => {
+                                  setEditing(service);
+                                  setDialogOpen(true);
+                                }}
+                              >
+                                <Pencil />
+                                Editar
+                              </DropdownMenuItem>
+                              <DropdownMenuItem destructive onClick={() => setToDelete(service)}>
+                                <Trash2 />
+                                Eliminar
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </>
           )}
         </CardContent>
       </Card>
