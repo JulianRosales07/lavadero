@@ -3,6 +3,7 @@ import { useAuth } from '@/components/auth-provider';
 
 // Layouts
 import AppLayout from '@/components/layout/app-layout';
+import { ScrollToTop } from '@/components/layout/scroll-to-top';
 
 // Pages
 import LoginPage from '@/pages/login';
@@ -18,8 +19,16 @@ import CajaPage from '@/pages/caja';
 import ReportesPage from '@/pages/reportes';
 import ConfiguracionPage from '@/pages/configuracion';
 
-function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { session, isLoading } = useAuth();
+import type { UserRole } from '@/lib/types';
+
+function ProtectedRoute({
+  children,
+  allowedRoles,
+}: {
+  children: React.ReactNode;
+  allowedRoles?: UserRole[];
+}) {
+  const { session, user, isLoading } = useAuth();
 
   if (isLoading) {
     return (
@@ -33,12 +42,18 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
     return <Navigate to="/login" replace />;
   }
 
+  if (allowedRoles && user && !allowedRoles.includes(user.role)) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
   return <>{children}</>;
 }
 
 function App() {
   return (
-    <Routes>
+    <>
+      <ScrollToTop />
+      <Routes>
       {/* Public routes */}
       <Route path="/login" element={<LoginPage />} />
 
@@ -54,13 +69,55 @@ function App() {
         <Route index element={<Navigate to="/dashboard" replace />} />
         <Route path="dashboard" element={<DashboardPage />} />
         <Route path="ordenes" element={<OrdenesPage />} />
-        <Route path="ordenes/nueva" element={<NuevaOrdenPage />} />
+        <Route
+          path="ordenes/nueva"
+          element={
+            <ProtectedRoute allowedRoles={['ADMIN', 'CASHIER']}>
+              <NuevaOrdenPage />
+            </ProtectedRoute>
+          }
+        />
         <Route path="ordenes/:id" element={<OrdenDetailPage />} />
-        <Route path="clientes" element={<ClientesPage />} />
-        <Route path="empleados" element={<EmpleadosPage />} />
-        <Route path="servicios" element={<ServiciosPage />} />
-        <Route path="promociones" element={<PromocionesPage />} />
-        <Route path="caja" element={<CajaPage />} />
+        <Route
+          path="clientes"
+          element={
+            <ProtectedRoute allowedRoles={['ADMIN', 'CASHIER']}>
+              <ClientesPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="empleados"
+          element={
+            <ProtectedRoute allowedRoles={['ADMIN']}>
+              <EmpleadosPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="servicios"
+          element={
+            <ProtectedRoute allowedRoles={['ADMIN']}>
+              <ServiciosPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="promociones"
+          element={
+            <ProtectedRoute allowedRoles={['ADMIN']}>
+              <PromocionesPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="caja"
+          element={
+            <ProtectedRoute allowedRoles={['ADMIN', 'CASHIER']}>
+              <CajaPage />
+            </ProtectedRoute>
+          }
+        />
         <Route path="reportes" element={<ReportesPage />} />
         <Route path="configuracion" element={<ConfiguracionPage />} />
       </Route>
@@ -68,6 +125,7 @@ function App() {
       {/* 404 */}
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>
+    </>
   );
 }
 

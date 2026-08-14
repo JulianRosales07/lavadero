@@ -18,6 +18,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { USER_ROLE_META } from '@/lib/constants';
+import type { UserRole } from '@/lib/types';
 import { cn, initials } from '@/lib/utils';
 
 interface Tab {
@@ -26,17 +27,30 @@ interface Tab {
   icon: LucideIcon;
 }
 
-/** Cuatro destinos de uso diario; el resto vive en la hoja "Más". */
-const TABS: Tab[] = [
-  { href: '/dashboard', label: 'Inicio', icon: LayoutDashboard },
-  { href: '/ordenes', label: 'Órdenes', icon: ClipboardList },
-  { href: '/clientes', label: 'Clientes', icon: Users },
-  { href: '/caja', label: 'Caja', icon: Wallet },
-];
+const ROLE_TABS: Record<UserRole, Tab[]> = {
+  ADMIN: [
+    { href: '/dashboard', label: 'Inicio', icon: LayoutDashboard },
+    { href: '/ordenes', label: 'Órdenes', icon: ClipboardList },
+    { href: '/clientes', label: 'Clientes', icon: Users },
+    { href: '/caja', label: 'Caja', icon: Wallet },
+  ],
+  CASHIER: [
+    { href: '/dashboard', label: 'Inicio', icon: LayoutDashboard },
+    { href: '/ordenes', label: 'Órdenes', icon: ClipboardList },
+    { href: '/clientes', label: 'Clientes', icon: Users },
+    { href: '/caja', label: 'Caja', icon: Wallet },
+  ],
+  OPERATOR: [
+    { href: '/dashboard', label: 'Inicio', icon: LayoutDashboard },
+    { href: '/ordenes', label: 'Órdenes', icon: ClipboardList },
+    { href: '/reportes', label: 'Ganancias', icon: Wallet },
+    { href: '/configuracion', label: 'Mi perfil', icon: Users },
+  ],
+};
 
 /**
- * Navegación inferior tipo app nativa, con botón de acción central para
- * crear una orden. Reemplaza al sidebar por debajo de lg.
+ * Navegación inferior tipo app nativa, adaptada dinámicamente al rol del usuario.
+ * Reemplaza al sidebar por debajo de lg.
  */
 export function MobileNav() {
   const location = useLocation();
@@ -44,39 +58,41 @@ export function MobileNav() {
   const { user, logout } = useAuth();
   const [moreOpen, setMoreOpen] = React.useState(false);
 
+  const role = user?.role ?? 'OPERATOR';
+  const tabs = ROLE_TABS[role] ?? ROLE_TABS.OPERATOR;
   const sections = sectionsFor(user?.role);
   const isActive = (href: string) => pathname === href || pathname.startsWith(`${href}/`);
 
-  // Los destinos que no caben en la barra inferior
+  // Los destinos que no caben en la barra inferior pero a los que el rol sí tiene acceso
   const extra = sections
     .flatMap((section) => section.items.map((item) => ({ ...item, section: section.title })))
-    .filter((item) => !TABS.some((tab) => tab.href === item.href));
+    .filter((item) => !tabs.some((tab) => tab.href === item.href));
 
   const moreActive = extra.some((item) => isActive(item.href));
 
   return (
     <>
-      {/* Botón de acción principal */}
-      <Link
-        to="/ordenes/nueva"
-        className={cn(
-          'fixed bottom-[calc(4.25rem+env(safe-area-inset-bottom))] right-4 z-40 grid size-14 place-items-center rounded-2xl bg-primary text-primary-foreground shadow-lifted transition-transform active:scale-95 lg:hidden',
-          pathname.startsWith('/ordenes/nueva') && 'hidden',
-        )}
-        aria-label="Nueva orden"
-      >
-        <Plus className="size-6" aria-hidden />
-      </Link>
+      {/* Botón de acción principal: solo disponible para usuarios con permiso de creación */}
+      {user?.role !== 'OPERATOR' && (
+        <Link
+          to="/ordenes/nueva"
+          className={cn(
+            'fixed bottom-[calc(4.25rem+env(safe-area-inset-bottom))] right-4 z-40 grid size-14 place-items-center rounded-2xl bg-primary text-primary-foreground shadow-lifted transition-transform active:scale-95 lg:hidden',
+            pathname.startsWith('/ordenes/nueva') && 'hidden',
+          )}
+          aria-label="Nueva orden"
+        >
+          <Plus className="size-6" aria-hidden />
+        </Link>
+      )}
 
       <nav
         aria-label="Navegación principal"
-        // Fondo opaco y capa propia de composición: evita repintar el
-        // contenido de la página al desplazarse o al cambiar de pantalla.
         style={{ transform: 'translateZ(0)' }}
         className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background pb-[env(safe-area-inset-bottom)] lg:hidden"
       >
-        <ul className="grid grid-cols-5">
-          {TABS.map((tab) => {
+        <ul className={cn('grid', extra.length > 0 ? 'grid-cols-5' : 'grid-cols-5')}>
+          {tabs.map((tab) => {
             const active = isActive(tab.href);
             return (
               <li key={tab.href}>

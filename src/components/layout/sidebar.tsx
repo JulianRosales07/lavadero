@@ -176,14 +176,16 @@ export function Sidebar({
             </Button>
           </div>
 
-          <div className="px-4 pb-4">
-            <Button asChild className="w-full">
-              <Link to="/ordenes/nueva">
-                <Plus />
-                Nueva orden
-              </Link>
-            </Button>
-          </div>
+          {user?.role !== 'OPERATOR' ? (
+            <div className="px-4 pb-4">
+              <Button asChild className="w-full">
+                <Link to="/ordenes/nueva">
+                  <Plus />
+                  Nueva orden
+                </Link>
+              </Button>
+            </div>
+          ) : null}
 
           <nav
             aria-label="Menú principal"
