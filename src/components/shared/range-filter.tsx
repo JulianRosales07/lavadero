@@ -20,14 +20,19 @@ export function RangeFilter({
   onChange: (value: RangeValue) => void;
 }) {
   return (
-    <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+    <div className="flex w-full flex-col gap-3 sm:flex-row sm:items-end">
       <Tabs
         value={value.preset}
         onValueChange={(preset) => onChange({ ...value, preset: preset as RangePreset })}
+        className="w-full sm:w-auto"
       >
-        <TabsList>
+        <TabsList className="grid w-full grid-cols-4 h-9 p-0.5 sm:inline-flex sm:w-auto sm:h-10 sm:p-1">
           {RANGE_PRESETS.map((preset) => (
-            <TabsTrigger key={preset.value} value={preset.value}>
+            <TabsTrigger
+              key={preset.value}
+              value={preset.value}
+              className="px-1 py-1 text-[11px] sm:px-3 sm:py-1.5 sm:text-sm font-medium truncate"
+            >
               {preset.label}
             </TabsTrigger>
           ))}
@@ -35,27 +40,27 @@ export function RangeFilter({
       </Tabs>
 
       {value.preset === 'custom' ? (
-        <div className="flex flex-wrap items-end gap-2">
-          <div className="space-y-1.5">
+        <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto sm:flex-wrap sm:items-end">
+          <div className="space-y-1.5 min-w-0">
             <Label htmlFor="range-from" className="text-xs">
               Desde
             </Label>
             <Input
               id="range-from"
               type="date"
-              className="h-10 w-[150px]"
+              className="h-9 sm:h-10 w-full sm:w-[150px] text-xs sm:text-sm"
               value={value.from ?? ''}
               onChange={(event) => onChange({ ...value, from: event.target.value })}
             />
           </div>
-          <div className="space-y-1.5">
+          <div className="space-y-1.5 min-w-0">
             <Label htmlFor="range-to" className="text-xs">
               Hasta
             </Label>
             <Input
               id="range-to"
               type="date"
-              className="h-10 w-[150px]"
+              className="h-9 sm:h-10 w-full sm:w-[150px] text-xs sm:text-sm"
               value={value.to ?? ''}
               onChange={(event) => onChange({ ...value, to: event.target.value })}
             />

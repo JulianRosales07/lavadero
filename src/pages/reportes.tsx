@@ -72,9 +72,9 @@ export default function ReportsPage() {
       {isOperator ? (
         <EmployeeEarningsTab range={range} />
       ) : (
-        <Tabs defaultValue="ventas">
-          <div className="overflow-x-auto no-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0">
-            <TabsList className="inline-flex w-max sm:w-auto h-auto flex-nowrap sm:flex-wrap justify-start gap-1 p-1">
+        <Tabs defaultValue="ventas" className="w-full max-w-full">
+          <div className="w-full max-w-full overflow-x-auto no-scrollbar pb-1">
+            <TabsList className="inline-flex w-max h-auto justify-start gap-1 p-1">
               <TabsTrigger value="ventas" className="text-xs sm:text-sm">
                 <CircleDollarSign className="size-4" />
                 Ventas

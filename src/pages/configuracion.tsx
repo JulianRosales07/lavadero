@@ -60,9 +60,9 @@ export default function SettingsPage() {
         description="Datos del negocio, formato del ticket y seguridad de tu cuenta."
       />
 
-      <Tabs defaultValue={initialTab}>
-        <div className="overflow-x-auto no-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0">
-          <TabsList className="inline-flex w-max sm:w-auto h-auto flex-nowrap sm:flex-wrap justify-start gap-1 p-1">
+      <Tabs defaultValue={initialTab} className="w-full max-w-full">
+        <div className="w-full max-w-full overflow-x-auto no-scrollbar pb-1">
+          <TabsList className="inline-flex w-max h-auto justify-start gap-1 p-1">
             <TabsTrigger value="negocio" className="text-xs sm:text-sm">
               <Building2 className="size-4" />
               Negocio

@@ -63,9 +63,9 @@ export function StatCard({
           {loading ? (
             <Skeleton className="h-7 w-20" />
           ) : (
-            <p className="text-2xl font-semibold tracking-tight">{value}</p>
+            <p className="text-xl sm:text-2xl font-semibold tracking-tight tabular-nums truncate">{value}</p>
           )}
-          {hint ? <p className="text-xs text-muted-foreground">{hint}</p> : null}
+          {hint ? <p className="text-xs text-muted-foreground truncate">{hint}</p> : null}
         </div>
         {Icon ? (
           <span className={cn('grid size-10 shrink-0 place-items-center rounded-lg', TONES[tone])}>

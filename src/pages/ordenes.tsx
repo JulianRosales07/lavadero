@@ -89,19 +89,24 @@ export default function OrdersPage() {
         }
       />
 
-      <Card>
-        <CardContent className="flex flex-col gap-4 p-4">
+      <Card className="max-w-full overflow-hidden">
+        <CardContent className="flex flex-col gap-3.5 p-3.5 sm:p-4">
           <Tabs
             value={tab}
             onValueChange={(value) => {
               setTab(value);
               setPage(1);
             }}
+            className="w-full max-w-full"
           >
-            <div className="overflow-x-auto no-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0">
-              <TabsList className="inline-flex w-max sm:w-auto h-auto flex-nowrap sm:flex-wrap justify-start gap-1 p-1">
+            <div className="w-full max-w-full overflow-x-auto no-scrollbar pb-1">
+              <TabsList className="inline-flex w-max h-9 sm:h-10 justify-start gap-1 p-1">
                 {STATUS_TABS.map((item) => (
-                  <TabsTrigger key={item.value} value={item.value} className="text-xs sm:text-sm">
+                  <TabsTrigger
+                    key={item.value}
+                    value={item.value}
+                    className="text-xs sm:text-sm px-2.5 py-1 sm:px-3 sm:py-1.5"
+                  >
                     {item.label}
                   </TabsTrigger>
                 ))}
@@ -109,8 +114,8 @@ export default function OrdersPage() {
             </div>
           </Tabs>
 
-          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-            <div className="relative w-full max-w-sm">
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between w-full min-w-0">
+            <div className="relative w-full lg:max-w-sm min-w-0">
               <Search
                 className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
                 aria-hidden
@@ -119,21 +124,23 @@ export default function OrdersPage() {
                 value={term}
                 onChange={(event) => setTerm(event.target.value)}
                 placeholder="Buscar por número, placa o cliente..."
-                className="pl-9"
+                className="pl-9 w-full"
                 aria-label="Buscar órdenes"
               />
             </div>
 
             {!searching ? (
-              <RangeFilter
-                value={range}
-                onChange={(value) => {
-                  setRange(value);
-                  setPage(1);
-                }}
-              />
+              <div className="w-full sm:w-auto min-w-0">
+                <RangeFilter
+                  value={range}
+                  onChange={(value) => {
+                    setRange(value);
+                    setPage(1);
+                  }}
+                />
+              </div>
             ) : (
-              <Badge variant="muted">Buscando en todo el historial</Badge>
+              <Badge variant="muted" className="w-fit">Buscando en todo el historial</Badge>
             )}
           </div>
         </CardContent>
