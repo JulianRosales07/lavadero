@@ -1,11 +1,11 @@
 /**
- * URL del backend. Se define en frontend/.env.local con NEXT_PUBLIC_API_URL.
+ * URL del backend. Se define en frontend/.env.local con VITE_API_URL.
  * Si falta, se usa el backend desplegado en Render.
  * Se recorta la barra final para no generar rutas con doble slash.
  */
 const getApiUrl = () => {
-  const env = typeof import.meta !== 'undefined' ? (import.meta as unknown as { env: Record<string, string | undefined> }).env : undefined;
-  const url = env?.VITE_API_URL || env?.NEXT_PUBLIC_API_URL || 'https://lavadero-s88q.onrender.com';
+  const url = import.meta.env.VITE_API_URL;
+  if (!url) throw new Error('VITE_API_URL no está definido en .env.local');
   return url.replace(/\/+$/, '');
 };
 
