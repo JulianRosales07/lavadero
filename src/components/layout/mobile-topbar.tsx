@@ -47,7 +47,7 @@ export function MobileTopBar() {
     <>
       {/* Fondo opaco a propósito: backdrop-blur en una capa fija obliga al
           navegador a recomponer todo el viewport en cada scroll y navegación. */}
-      <header className="sticky top-0 z-30 flex h-14 items-center gap-2 border-b border-border bg-background px-3 lg:hidden">
+      <header className="fixed inset-x-0 top-0 z-30 flex h-14 items-center gap-2 border-b border-border bg-background px-3 lg:hidden">
         {back ? (
           <Button
             variant="ghost"

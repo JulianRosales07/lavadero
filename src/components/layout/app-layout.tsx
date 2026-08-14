@@ -82,7 +82,7 @@ export default function AppLayout() {
         {/* Escritorio: buscador y acciones */}
         <Header />
 
-        <main className="flex-1 px-4 pb-28 pt-4 sm:px-6 sm:pb-6 sm:pt-6">
+        <main className="flex-1 px-4 pb-28 pt-[calc(3.5rem+1rem)] sm:px-6 sm:pb-6 sm:pt-6">
           {/* La animación de entrada solo en escritorio: en móvil desplazar
               todo el contenido en cada navegación se siente lento. */}
           <div className="mx-auto w-full max-w-[1600px] space-y-4 sm:space-y-6 lg:animate-fade-in">
