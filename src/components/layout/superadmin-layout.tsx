@@ -223,7 +223,7 @@ export default function SuperAdminLayout() {
           <div className="flex items-start justify-between gap-2 px-5 pb-3 pt-5">
             <div className="min-w-0">
               <p className="truncate text-lg font-semibold leading-tight tracking-tight">
-                AquaControl
+                DetailOps
               </p>
               <p className="truncate text-xs text-muted-foreground">Panel Super Admin</p>
             </div>
