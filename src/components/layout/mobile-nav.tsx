@@ -4,6 +4,7 @@ import * as React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import {
   BarChart3,
+  Building2,
   ClipboardList,
   LayoutDashboard,
   LogOut,
@@ -30,7 +31,11 @@ interface Tab {
 }
 
 const ROLE_TABS: Record<UserRole, Tab[]> = {
-  SUPER_ADMIN: [],
+  SUPER_ADMIN: [
+    { href: '/superadmin/dashboard', label: 'Panel', icon: LayoutDashboard },
+    { href: '/superadmin/establecimientos', label: 'Locales', icon: Building2 },
+    { href: '/superadmin/usuarios', label: 'Usuarios', icon: Users },
+  ],
   ADMIN: [
     { href: '/dashboard', label: 'Inicio', icon: LayoutDashboard },
     { href: '/ordenes', label: 'Órdenes', icon: ClipboardList },

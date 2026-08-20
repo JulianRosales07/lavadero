@@ -89,7 +89,7 @@ export default function LoginPage() {
 
           <div className="relative z-10 flex flex-col items-center gap-3 text-white">
             <div className="flex size-24 items-center justify-center rounded-full bg-white/95 p-2.5 shadow-lg ring-4 ring-white/40 backdrop-blur-md">
-              <img src="/DetailOps.png" alt="DetailOps" className="size-full object-contain" />
+              <img src="/DetailOps1.png" alt="DetailOps" className="size-full object-contain" />
             </div>
             <span className="text-3xl font-bold tracking-tight">DetailOps</span>
           </div>

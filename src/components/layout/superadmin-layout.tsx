@@ -1,18 +1,16 @@
 'use client';
 
 import * as React from 'react';
-import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import {
   Building2,
   ChevronsLeft,
   LayoutDashboard,
   Loader2,
   LogOut,
-  Menu,
   Settings,
   ShieldCheck,
   Users,
-  X,
 } from 'lucide-react';
 import { useAuth } from '@/components/auth-provider';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -27,6 +25,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { SimpleTooltip } from '@/components/ui/tooltip';
 import { ThemeToggle } from '@/components/layout/theme-toggle';
+import { MobileNav } from '@/components/layout/mobile-nav';
 import { SIDEBAR } from '@/components/layout/nav-items';
 import { cn, initials } from '@/lib/utils';
 
@@ -63,7 +62,6 @@ export default function SuperAdminLayout() {
   const navigate = useNavigate();
   const location = useLocation();
   const [collapsed, setCollapsed] = React.useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
 
   React.useEffect(() => {
     setCollapsed(window.localStorage.getItem(COLLAPSED_KEY) === '1');
@@ -289,74 +287,9 @@ export default function SuperAdminLayout() {
       </div>
 
       {/* ════════════════════════════════════════════════════
-          MÓVIL: Topbar + Menú desplegable
+          MÓVIL: Barra de navegación inferior (compartida)
           ════════════════════════════════════════════════════ */}
-      <div className="flex flex-col lg:hidden">
-        <header className="flex h-14 items-center justify-between border-b border-border bg-card/90 px-4 backdrop-blur">
-          <Link to="/superadmin/dashboard" className="flex items-center gap-2.5">
-            <div className="grid size-8 place-items-center rounded-lg bg-primary text-primary-foreground">
-              <ShieldCheck className="size-4" />
-            </div>
-            <span className="font-semibold">Super Admin</span>
-          </Link>
-
-          <div className="flex items-center gap-1">
-            <ThemeToggle />
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setMobileMenuOpen((o) => !o)}
-              aria-label={mobileMenuOpen ? 'Cerrar menú' : 'Abrir menú'}
-            >
-              {mobileMenuOpen ? <X className="size-5" /> : <Menu className="size-5" />}
-            </Button>
-          </div>
-        </header>
-
-        {mobileMenuOpen && (
-          <div className="border-b border-border bg-card px-4 py-3">
-            <nav className="space-y-4">
-              {NAV_SECTIONS.map((section) => (
-                <div key={section.title}>
-                  <p className="pb-1.5 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-                    {section.title}
-                  </p>
-                  <ul className="space-y-1">
-                    {section.items.map((item) => {
-                      const active = isActive(item.to);
-                      return (
-                        <li key={item.to}>
-                          <NavLink
-                            to={item.to}
-                            onClick={() => setMobileMenuOpen(false)}
-                            className={cn(
-                              'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
-                              active
-                                ? 'bg-primary text-primary-foreground'
-                                : 'text-muted-foreground hover:bg-accent hover:text-foreground',
-                            )}
-                          >
-                            <item.icon className="size-4 shrink-0" />
-                            <span>{item.label}</span>
-                          </NavLink>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                </div>
-              ))}
-              <Button
-                variant="destructive"
-                className="w-full justify-start gap-3"
-                onClick={logout}
-              >
-                <LogOut className="size-4" />
-                Cerrar sesión
-              </Button>
-            </nav>
-          </div>
-        )}
-      </div>
+      <MobileNav />
 
       {/* ════════════════════════════════════════════════════
           Contenido principal
@@ -376,7 +309,7 @@ export default function SuperAdminLayout() {
           </div>
         </header>
 
-        <main className="flex-1 px-4 pb-10 pt-4 sm:px-6 lg:pt-6">
+        <main className="flex-1 px-4 pb-[calc(4.25rem+env(safe-area-inset-bottom))] pt-4 sm:px-6 lg:pb-10 lg:pt-6">
           <div className="mx-auto w-full max-w-[1600px] space-y-4 sm:space-y-6 lg:animate-fade-in">
             <Outlet />
           </div>
