@@ -49,7 +49,7 @@ export default function LoginPage() {
   return (
     <>
       {/* ══ MÓVIL (< lg) ══ */}
-      <div className="flex min-h-screen flex-col bg-white lg:hidden">
+      <div className="flex min-h-screen flex-col bg-background text-foreground lg:hidden">
         {/* Cabecera Azul con Video */}
         <div
           className="relative flex flex-col items-center justify-center overflow-hidden px-4 pb-16 pt-12 text-center"
@@ -89,9 +89,9 @@ export default function LoginPage() {
           </div>
 
           <div className="pointer-events-none absolute bottom-0 left-0 w-full leading-none" aria-hidden>
-            <svg viewBox="0 0 375 80" preserveAspectRatio="none" className="block h-16 w-full">
+            <svg viewBox="0 0 375 80" preserveAspectRatio="none" className="block h-16 w-full text-background fill-current">
               <path d="M0,40 C60,75 120,10 187,45 C254,80 310,15 375,40 L375,80 L0,80 Z" fill="rgba(255,255,255,0.18)" />
-              <path d="M0,58 C50,42 110,68 187,55 C264,42 320,66 375,50 L375,80 L0,80 Z" fill="white" />
+              <path d="M0,58 C50,42 110,68 187,55 C264,42 320,66 375,50 L375,80 L0,80 Z" />
             </svg>
           </div>
         </div>
@@ -100,13 +100,13 @@ export default function LoginPage() {
         <div className="flex flex-1 flex-col items-center px-6 pb-12 pt-6">
           <div className="w-full max-w-md">
             <div className="mb-8 text-center">
-              <h2 className="text-3xl font-bold text-gray-900">Iniciar sesión</h2>
-              <p className="mt-2 text-base text-gray-500">Ingresa tus credenciales para continuar</p>
+              <h2 className="text-3xl font-bold tracking-tight text-foreground">Iniciar sesión</h2>
+              <p className="mt-2 text-base text-muted-foreground">Ingresa tus credenciales para continuar</p>
             </div>
 
             <form onSubmit={onSubmit} className="space-y-5">
               <div className="space-y-2">
-                <Label htmlFor="email-m" className="text-base font-medium text-gray-700">
+                <Label htmlFor="email-m" className="text-base font-medium text-foreground">
                   Correo electrónico
                 </Label>
                 <Input
@@ -117,12 +117,12 @@ export default function LoginPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="tucorreo@lavadero.com"
-                  className="h-12 rounded-xl border-gray-200 bg-gray-50 px-4 text-base"
+                  className="h-12 rounded-xl border-border bg-card px-4 text-base text-foreground placeholder:text-muted-foreground focus:border-primary"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="password-m" className="text-base font-medium text-gray-700">
+                <Label htmlFor="password-m" className="text-base font-medium text-foreground">
                   Contraseña
                 </Label>
                 <div className="relative">
@@ -134,12 +134,12 @@ export default function LoginPage() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••"
-                    className="h-12 rounded-xl border-gray-200 bg-gray-50 px-4 pr-12 text-base"
+                    className="h-12 rounded-xl border-border bg-card px-4 pr-12 text-base text-foreground placeholder:text-muted-foreground focus:border-primary"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword((p) => !p)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md p-1 text-gray-400 hover:text-gray-600"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md p-1 text-muted-foreground hover:text-foreground"
                     aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
                   >
                     {showPassword ? <EyeOff className="size-5" /> : <Eye className="size-5" />}
@@ -150,7 +150,7 @@ export default function LoginPage() {
               <Button
                 type="submit"
                 size="lg"
-                className="mt-3 h-12 w-full rounded-xl text-base font-semibold shadow-md transition-all hover:opacity-95"
+                className="mt-3 h-12 w-full rounded-xl text-base font-semibold shadow-md transition-all hover:opacity-95 text-white"
                 style={{ background: 'linear-gradient(135deg, #1e90ff, #56b4ff)' }}
                 loading={submitting}
               >
@@ -162,7 +162,7 @@ export default function LoginPage() {
       </div>
 
       {/* ══ ESCRITORIO (≥ lg) ══ */}
-      <div className="hidden min-h-screen lg:flex">
+      <div className="hidden min-h-screen lg:flex bg-background text-foreground">
         {/* Panel Izquierdo con Video de Fondo */}
         <div
           className="relative flex w-[44%] flex-col items-center justify-center overflow-hidden"
@@ -225,28 +225,27 @@ export default function LoginPage() {
             </svg>
           </div>
 
-          {/* Curva divisor blanca hacia el formulario */}
+          {/* Curva divisor dinámica hacia el formulario */}
           <div className="pointer-events-none absolute -right-1 bottom-0 top-0 w-24" aria-hidden>
-            <svg viewBox="0 0 100 800" preserveAspectRatio="none" className="block h-full w-full">
+            <svg viewBox="0 0 100 800" preserveAspectRatio="none" className="block h-full w-full text-background fill-current">
               <path
                 d="M100,0 L40,0 C15,130 65,260 30,390 C-5,520 60,650 25,740 C10,775 40,800 100,800 Z"
-                fill="#ffffff"
               />
             </svg>
           </div>
         </div>
 
-        {/* Panel Derecho Blanco */}
-        <div className="flex flex-1 items-center justify-center bg-white px-12">
+        {/* Panel Derecho */}
+        <div className="flex flex-1 items-center justify-center bg-background px-12">
           <div className="w-full max-w-md">
             <div className="mb-9">
-              <h2 className="text-3xl font-bold text-gray-900">Iniciar sesión</h2>
-              <p className="mt-2 text-base text-gray-500">Ingresa tus credenciales para continuar</p>
+              <h2 className="text-3xl font-bold tracking-tight text-foreground">Iniciar sesión</h2>
+              <p className="mt-2 text-base text-muted-foreground">Ingresa tus credenciales para continuar</p>
             </div>
 
             <form onSubmit={onSubmit} className="space-y-6">
               <div className="space-y-2">
-                <Label htmlFor="email" className="text-base font-medium text-gray-700">
+                <Label htmlFor="email" className="text-base font-medium text-foreground">
                   Correo electrónico
                 </Label>
                 <Input
@@ -257,12 +256,12 @@ export default function LoginPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="tucorreo@lavadero.com"
-                  className="h-12 rounded-xl border-gray-200 bg-gray-50/80 px-4 text-base focus:border-blue-400 focus:ring-blue-400"
+                  className="h-12 rounded-xl border-border bg-card px-4 text-base text-foreground placeholder:text-muted-foreground focus:border-primary"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="password" className="text-base font-medium text-gray-700">
+                <Label htmlFor="password" className="text-base font-medium text-foreground">
                   Contraseña
                 </Label>
                 <div className="relative">
@@ -274,12 +273,12 @@ export default function LoginPage() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••"
-                    className="h-12 rounded-xl border-gray-200 bg-gray-50/80 px-4 pr-12 text-base focus:border-blue-400 focus:ring-blue-400"
+                    className="h-12 rounded-xl border-border bg-card px-4 pr-12 text-base text-foreground placeholder:text-muted-foreground focus:border-primary"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword((p) => !p)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md p-1 text-gray-400 hover:text-gray-600 focus-visible:outline-none"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md p-1 text-muted-foreground hover:text-foreground focus-visible:outline-none"
                     aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
                   >
                     {showPassword ? <EyeOff className="size-5" /> : <Eye className="size-5" />}
@@ -290,7 +289,7 @@ export default function LoginPage() {
               <Button
                 type="submit"
                 size="lg"
-                className="mt-3 h-12 w-full rounded-xl text-base font-semibold shadow-md transition-all hover:opacity-95"
+                className="mt-3 h-12 w-full rounded-xl text-base font-semibold shadow-md transition-all hover:opacity-95 text-white"
                 style={{ background: 'linear-gradient(135deg, #1e90ff, #56b4ff)' }}
                 loading={submitting}
               >
