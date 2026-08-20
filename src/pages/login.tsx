@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { Droplets, Eye, EyeOff } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/components/auth-provider';
+import { ThemeToggle } from '@/components/layout/theme-toggle';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -48,6 +49,11 @@ export default function LoginPage() {
 
   return (
     <>
+      {/* Botón de Modo Claro / Oscuro Flotante */}
+      <div className="fixed right-4 top-4 z-50 flex items-center gap-2 rounded-full border border-border/80 bg-background/80 p-1 shadow-md backdrop-blur-md transition-all hover:bg-background">
+        <ThemeToggle />
+      </div>
+
       {/* ══ MÓVIL (< lg) ══ */}
       <div className="flex min-h-screen flex-col bg-background text-foreground lg:hidden">
         {/* Cabecera Azul con Video */}
