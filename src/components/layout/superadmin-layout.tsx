@@ -1,185 +1,383 @@
+'use client';
+
 import * as React from 'react';
-import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import {
   Building2,
+  ChevronsLeft,
   LayoutDashboard,
+  Loader2,
   LogOut,
+  Menu,
+  Settings,
   ShieldCheck,
   Users,
-  Menu,
   X,
-  Sparkles,
 } from 'lucide-react';
 import { useAuth } from '@/components/auth-provider';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { cn } from '@/lib/utils';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { SimpleTooltip } from '@/components/ui/tooltip';
+import { ThemeToggle } from '@/components/layout/theme-toggle';
+import { SIDEBAR } from '@/components/layout/nav-items';
+import { cn, initials } from '@/lib/utils';
+
+const COLLAPSED_KEY = 'lavadero.superadmin.sidebar.collapsed';
+
+interface SuperAdminNavItem {
+  to: string;
+  label: string;
+  hint?: string;
+  icon: React.ElementType;
+}
+
+const NAV_SECTIONS: { title: string; items: SuperAdminNavItem[] }[] = [
+  {
+    title: 'Plataforma',
+    items: [
+      { to: '/superadmin/dashboard', label: 'Panel Global', hint: 'Dashboard', icon: LayoutDashboard },
+      { to: '/superadmin/establecimientos', label: 'Establecimientos', hint: 'Lavaderos', icon: Building2 },
+    ],
+  },
+  {
+    title: 'Usuarios',
+    items: [
+      { to: '/superadmin/usuarios', label: 'Administradores & Usuarios', hint: 'Usuarios', icon: Users },
+    ],
+  },
+];
+
+const railWidth = SIDEBAR.rail + SIDEBAR.margin * 2;
+const fullWidth = SIDEBAR.margin * 2 + SIDEBAR.rail + SIDEBAR.gap + SIDEBAR.panel;
 
 export default function SuperAdminLayout() {
-  const { user, logout } = useAuth();
+  const { user, logout, isLoading } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const [collapsed, setCollapsed] = React.useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
 
-  // Redirigir si no es SUPER_ADMIN
   React.useEffect(() => {
-    if (user && user.role !== 'SUPER_ADMIN') {
+    setCollapsed(window.localStorage.getItem(COLLAPSED_KEY) === '1');
+  }, []);
+
+  const toggleCollapsed = React.useCallback(() => {
+    setCollapsed((prev) => {
+      window.localStorage.setItem(COLLAPSED_KEY, prev ? '0' : '1');
+      return !prev;
+    });
+  }, []);
+
+  React.useEffect(() => {
+    if (!isLoading && user && user.role !== 'SUPER_ADMIN') {
       navigate('/dashboard', { replace: true });
     }
-  }, [user, navigate]);
+  }, [isLoading, user, navigate]);
 
-  const navItems = [
-    {
-      to: '/superadmin/dashboard',
-      label: 'Panel Global',
-      icon: LayoutDashboard,
-    },
-    {
-      to: '/superadmin/establecimientos',
-      label: 'Establecimientos',
-      icon: Building2,
-    },
-    {
-      to: '/superadmin/usuarios',
-      label: 'Administradores & Usuarios',
-      icon: Users,
-    },
-  ];
+  const isActive = (href: string) =>
+    location.pathname === href || location.pathname.startsWith(`${href}/`);
+
+  if (isLoading || !user) {
+    return (
+      <div className="grid min-h-screen place-items-center bg-background">
+        <div className="flex flex-col items-center gap-3">
+          <span className="grid size-12 place-items-center rounded-xl bg-primary text-primary-foreground">
+            <ShieldCheck className="size-6" aria-hidden />
+          </span>
+          <span className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Loader2 className="size-4 animate-spin" />
+            Cargando panel...
+          </span>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="flex min-h-screen bg-slate-950 text-slate-100 antialiased selection:bg-indigo-500 selection:text-white">
-      {/* Sidebar Escritorio */}
-      <aside className="hidden w-72 flex-col border-r border-slate-800 bg-slate-900/60 backdrop-blur-xl lg:flex">
-        {/* Header Marca */}
-        <div className="flex h-16 items-center gap-3 border-b border-slate-800/80 px-6">
-          <div className="flex size-10 items-center justify-center rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-cyan-400 shadow-lg shadow-indigo-500/25">
-            <ShieldCheck className="size-5 text-white" />
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="font-bold tracking-tight text-white">AquaControl</span>
-              <Badge variant="outline" className="border-indigo-500/30 bg-indigo-500/10 px-1.5 py-0 text-[10px] font-semibold text-indigo-300">
-                SaaS
-              </Badge>
-            </div>
-            <p className="text-xs text-slate-400">Panel Super Admin</p>
-          </div>
-        </div>
+    <div className="min-h-screen bg-background">
+      {/* ════════════════════════════════════════════════════
+          ESCRITORIO: Riel de iconos + Panel etiquetado
+          ════════════════════════════════════════════════════ */}
+      <div className="fixed inset-y-3 left-3 z-40 hidden gap-3 lg:flex">
+        {/* ── Riel de iconos ─────────────────────────────── */}
+        <nav
+          aria-label="Accesos directos"
+          className="flex shrink-0 flex-col items-center rounded-2xl bg-sidebar py-4 shadow-lifted"
+          style={{ width: SIDEBAR.rail }}
+        >
+          {/* Logo */}
+          <Link
+            to="/superadmin/dashboard"
+            className="grid size-10 shrink-0 place-items-center rounded-xl bg-primary text-primary-foreground transition-transform hover:scale-105"
+            aria-label="Panel Global"
+          >
+            <ShieldCheck className="size-5" aria-hidden />
+          </Link>
 
-        {/* Badge Contexto Multi-tenant */}
-        <div className="px-4 pt-4">
-          <div className="rounded-xl border border-indigo-500/20 bg-gradient-to-b from-indigo-500/10 to-transparent p-3 text-xs">
-            <div className="flex items-center gap-1.5 font-semibold text-indigo-300">
-              <Sparkles className="size-3.5" />
-              <span>Modo Plataforma</span>
-            </div>
-            <p className="mt-1 text-[11px] text-slate-400">
-              Gestión centralizada de lavaderos, franquicias y administradores.
-            </p>
+          {/* Secciones */}
+          <div className="mt-5 flex w-full flex-1 flex-col items-center gap-1 overflow-y-auto no-scrollbar">
+            {NAV_SECTIONS.map((section, index) => (
+              <div key={section.title} className="flex w-full flex-col items-center gap-1">
+                {index > 0 ? <span className="my-2 h-px w-7 bg-sidebar-border" aria-hidden /> : null}
+                {section.items.map((item) => {
+                  const active = isActive(item.to);
+                  return (
+                    <SimpleTooltip key={item.to} label={item.hint ?? item.label} side="right">
+                      <Link
+                        to={item.to}
+                        aria-current={active ? 'page' : undefined}
+                        className={cn(
+                          'relative grid size-10 place-items-center rounded-xl transition-colors',
+                          active
+                            ? 'bg-primary/20 text-white'
+                            : 'text-sidebar-foreground/55 hover:bg-sidebar-accent hover:text-sidebar-foreground',
+                        )}
+                      >
+                        <item.icon className="size-[18px]" aria-hidden />
+                        {active ? (
+                          <span
+                            className="absolute -right-[13px] h-6 w-[3px] rounded-full bg-white"
+                            aria-hidden
+                          />
+                        ) : null}
+                      </Link>
+                    </SimpleTooltip>
+                  );
+                })}
+              </div>
+            ))}
           </div>
-        </div>
 
-        {/* Navegación */}
-        <nav className="flex-1 space-y-1.5 px-4 py-6">
-          <p className="px-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
-            Administración Global
-          </p>
-          {navItems.map((item) => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              className={({ isActive }) =>
-                cn(
-                  'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-150',
-                  isActive
-                    ? 'bg-indigo-600/20 text-indigo-300 ring-1 ring-indigo-500/30 shadow-sm'
-                    : 'text-slate-400 hover:bg-slate-800/60 hover:text-slate-200',
-                )
-              }
-            >
-              <item.icon className="size-4 shrink-0" />
-              <span>{item.label}</span>
-            </NavLink>
-          ))}
+          {/* Expandir (solo cuando está colapsado) */}
+          {collapsed ? (
+            <SimpleTooltip label="Expandir navegación" side="right">
+              <button
+                type="button"
+                onClick={toggleCollapsed}
+                className="mt-3 hidden size-9 shrink-0 place-items-center rounded-xl border border-sidebar-border text-sidebar-foreground/60 transition-colors hover:bg-sidebar-accent hover:text-sidebar-foreground lg:grid"
+                aria-label="Expandir navegación"
+              >
+                <ChevronsLeft className="size-4 rotate-180" aria-hidden />
+              </button>
+            </SimpleTooltip>
+          ) : null}
+
+          {/* Avatar + Dropdown usuario */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                type="button"
+                className="mt-4 shrink-0 rounded-full ring-2 ring-sidebar-border transition-all hover:ring-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                aria-label="Menú de usuario"
+              >
+                <Avatar className="size-10">
+                  {user?.avatarUrl ? <AvatarImage src={user.avatarUrl} alt="" /> : null}
+                  <AvatarFallback className="bg-primary/15 text-primary">
+                    {initials(user?.name) || '··'}
+                  </AvatarFallback>
+                </Avatar>
+              </button>
+            </DropdownMenuTrigger>
+
+            <DropdownMenuContent side="right" align="end" className="w-56">
+              <DropdownMenuLabel>Mi cuenta</DropdownMenuLabel>
+              <div className="px-2 pb-2">
+                <p className="truncate text-sm font-medium">{user?.name}</p>
+                <p className="truncate text-xs text-muted-foreground">Super Admin</p>
+              </div>
+              <DropdownMenuSeparator />
+
+              {/* Toggle de tema */}
+              <div className="flex items-center justify-between px-2 py-1.5">
+                <span className="text-sm">Apariencia</span>
+                <ThemeToggle />
+              </div>
+              <DropdownMenuSeparator />
+
+              <DropdownMenuItem destructive onClick={logout}>
+                <LogOut />
+                Cerrar sesión
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </nav>
 
-        {/* Footer Usuario */}
-        <div className="border-t border-slate-800 p-4">
-          <div className="flex items-center justify-between rounded-xl bg-slate-900/90 p-3 ring-1 ring-slate-800">
-            <div className="min-w-0 pr-2">
-              <p className="truncate text-xs font-medium text-slate-200">{user?.name}</p>
-              <p className="truncate text-[11px] text-slate-400">{user?.email}</p>
+        {/* ── Panel etiquetado ───────────────────────────── */}
+        <div
+          className={cn(
+            'flex flex-col overflow-hidden rounded-2xl border border-border/70 bg-card shadow-card transition-all duration-300 ease-out',
+            collapsed ? 'pointer-events-none w-0 border-0 opacity-0' : 'opacity-100',
+          )}
+          style={{ width: collapsed ? 0 : SIDEBAR.panel }}
+          aria-hidden={collapsed}
+        >
+          {/* Header del panel */}
+          <div className="flex items-start justify-between gap-2 px-5 pb-3 pt-5">
+            <div className="min-w-0">
+              <p className="truncate text-lg font-semibold leading-tight tracking-tight">
+                AquaControl
+              </p>
+              <p className="truncate text-xs text-muted-foreground">Panel Super Admin</p>
             </div>
+          </div>
+
+          {/* Navegación agrupada */}
+          <nav
+            aria-label="Menú Super Admin"
+            className="flex-1 space-y-5 overflow-y-auto px-4 pb-4 no-scrollbar"
+          >
+            {NAV_SECTIONS.map((section) => (
+              <div key={section.title}>
+                <p className="px-2 pb-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+                  {section.title}
+                </p>
+                <ul className="space-y-0.5 border-l border-border pl-0">
+                  {section.items.map((item) => {
+                    const active = isActive(item.to);
+                    return (
+                      <li key={item.to} className="relative">
+                        {active ? (
+                          <span
+                            className="absolute -left-px top-1/2 h-5 w-[2px] -translate-y-1/2 rounded-full bg-primary"
+                            aria-hidden
+                          />
+                        ) : null}
+                        <Link
+                          to={item.to}
+                          aria-current={active ? 'page' : undefined}
+                          className={cn(
+                            'flex items-center gap-2.5 rounded-lg py-2 pl-3 pr-2 text-sm transition-colors',
+                            active
+                              ? 'bg-accent font-medium text-accent-foreground'
+                              : 'text-muted-foreground hover:bg-accent/50 hover:text-foreground',
+                          )}
+                        >
+                          <item.icon className="size-4 shrink-0 opacity-70" aria-hidden />
+                          <span className="truncate">{item.label}</span>
+                        </Link>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            ))}
+          </nav>
+
+          {/* Botón colapsar */}
+          <div className="flex justify-center border-t border-border/70 py-3">
+            <SimpleTooltip label="Colapsar navegación" side="right">
+              <Button
+                variant="outline"
+                size="icon-sm"
+                className="rounded-full text-primary"
+                onClick={toggleCollapsed}
+                aria-label="Colapsar navegación"
+              >
+                <ChevronsLeft />
+              </Button>
+            </SimpleTooltip>
+          </div>
+        </div>
+      </div>
+
+      {/* ════════════════════════════════════════════════════
+          MÓVIL: Topbar + Menú desplegable
+          ════════════════════════════════════════════════════ */}
+      <div className="flex flex-col lg:hidden">
+        <header className="flex h-14 items-center justify-between border-b border-border bg-card/90 px-4 backdrop-blur">
+          <Link to="/superadmin/dashboard" className="flex items-center gap-2.5">
+            <div className="grid size-8 place-items-center rounded-lg bg-primary text-primary-foreground">
+              <ShieldCheck className="size-4" />
+            </div>
+            <span className="font-semibold">Super Admin</span>
+          </Link>
+
+          <div className="flex items-center gap-1">
+            <ThemeToggle />
             <Button
               variant="ghost"
               size="icon"
-              onClick={logout}
-              className="size-8 text-slate-400 hover:bg-rose-500/10 hover:text-rose-400"
-              title="Cerrar sesión"
+              onClick={() => setMobileMenuOpen((o) => !o)}
+              aria-label={mobileMenuOpen ? 'Cerrar menú' : 'Abrir menú'}
             >
-              <LogOut className="size-4" />
+              {mobileMenuOpen ? <X className="size-5" /> : <Menu className="size-5" />}
             </Button>
           </div>
-        </div>
-      </aside>
-
-      {/* Contenido Principal */}
-      <div className="flex flex-1 flex-col">
-        {/* Topbar Móvil */}
-        <header className="flex h-16 items-center justify-between border-b border-slate-800 bg-slate-900/80 px-4 backdrop-blur lg:hidden">
-          <div className="flex items-center gap-2.5">
-            <div className="flex size-8 items-center justify-center rounded-lg bg-indigo-600 text-white">
-              <ShieldCheck className="size-4" />
-            </div>
-            <span className="font-bold text-white">Super Admin</span>
-          </div>
-
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="text-slate-300"
-          >
-            {mobileMenuOpen ? <X className="size-5" /> : <Menu className="size-5" />}
-          </Button>
         </header>
 
-        {/* Menú Móvil desplegable */}
         {mobileMenuOpen && (
-          <div className="border-b border-slate-800 bg-slate-900 p-4 lg:hidden">
-            <nav className="space-y-2">
-              {navItems.map((item) => (
-                <NavLink
-                  key={item.to}
-                  to={item.to}
-                  onClick={() => setMobileMenuOpen(false)}
-                  className={({ isActive }) =>
-                    cn(
-                      'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium',
-                      isActive
-                        ? 'bg-indigo-600 text-white'
-                        : 'text-slate-400 hover:bg-slate-800 hover:text-white',
-                    )
-                  }
-                >
-                  <item.icon className="size-4" />
-                  <span>{item.label}</span>
-                </NavLink>
+          <div className="border-b border-border bg-card px-4 py-3">
+            <nav className="space-y-4">
+              {NAV_SECTIONS.map((section) => (
+                <div key={section.title}>
+                  <p className="pb-1.5 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+                    {section.title}
+                  </p>
+                  <ul className="space-y-1">
+                    {section.items.map((item) => {
+                      const active = isActive(item.to);
+                      return (
+                        <li key={item.to}>
+                          <NavLink
+                            to={item.to}
+                            onClick={() => setMobileMenuOpen(false)}
+                            className={cn(
+                              'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
+                              active
+                                ? 'bg-primary text-primary-foreground'
+                                : 'text-muted-foreground hover:bg-accent hover:text-foreground',
+                            )}
+                          >
+                            <item.icon className="size-4 shrink-0" />
+                            <span>{item.label}</span>
+                          </NavLink>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
               ))}
               <Button
                 variant="destructive"
-                className="w-full justify-start gap-3 mt-4"
+                className="w-full justify-start gap-3"
                 onClick={logout}
               >
                 <LogOut className="size-4" />
-                Cerrar Sesión
+                Cerrar sesión
               </Button>
             </nav>
           </div>
         )}
+      </div>
 
-        {/* Vista activa */}
-        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
-          <div className="mx-auto max-w-7xl">
+      {/* ════════════════════════════════════════════════════
+          Contenido principal
+          ════════════════════════════════════════════════════ */}
+      <div
+        className="flex min-h-screen flex-col transition-[padding] duration-300 ease-out lg:pl-[var(--sidebar-width)]"
+        style={
+          {
+            '--sidebar-width': `${collapsed ? railWidth : fullWidth}px`,
+          } as React.CSSProperties
+        }
+      >
+        {/* Header escritorio con toggle de tema */}
+        <header className="sticky top-0 z-30 hidden h-16 items-center border-b border-border/70 bg-background/85 px-6 backdrop-blur-md lg:flex">
+          <div className="ml-auto flex items-center gap-1.5">
+            <ThemeToggle />
+          </div>
+        </header>
+
+        <main className="flex-1 px-4 pb-10 pt-4 sm:px-6 lg:pt-6">
+          <div className="mx-auto w-full max-w-[1600px] space-y-4 sm:space-y-6 lg:animate-fade-in">
             <Outlet />
           </div>
         </main>

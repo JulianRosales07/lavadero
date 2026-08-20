@@ -211,10 +211,10 @@ export default function EstablecimientosPage() {
       {/* Cabecera de Página */}
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">
+          <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
             Establecimientos y Lavaderos
           </h1>
-          <p className="text-sm text-slate-400">
+          <p className="text-sm text-muted-foreground">
             Crea, administra y asigna administradores a cada sede de lavadero.
           </p>
         </div>
@@ -231,12 +231,12 @@ export default function EstablecimientosPage() {
       {/* Barra de Filtros y Búsqueda */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
+          <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             placeholder="Buscar por nombre, teléfono o NIT..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9 bg-slate-900 border-slate-800 text-white placeholder:text-slate-500"
+            className="pl-9 bg-card border-border text-foreground placeholder:text-muted-foreground"
           />
         </div>
 
@@ -244,10 +244,10 @@ export default function EstablecimientosPage() {
           value={statusFilter}
           onValueChange={(val: any) => setStatusFilter(val)}
         >
-          <SelectTrigger className="w-full sm:w-44 bg-slate-900 border-slate-800 text-white">
+          <SelectTrigger className="w-full sm:w-44 bg-card border-border text-foreground">
             <SelectValue placeholder="Estado" />
           </SelectTrigger>
-          <SelectContent className="bg-slate-900 border-slate-800 text-white">
+          <SelectContent className="bg-popover border-border text-popover-foreground">
             <SelectItem value="all">Todos los estados</SelectItem>
             <SelectItem value="active">Solo Activos</SelectItem>
             <SelectItem value="inactive">Solo Inactivos</SelectItem>
@@ -259,23 +259,23 @@ export default function EstablecimientosPage() {
       {isLoading ? (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {[1, 2, 3].map((n) => (
-            <Card key={n} className="h-56 animate-pulse border-slate-800 bg-slate-900/60" />
+            <Card key={n} className="h-56 animate-pulse border-border bg-card/60" />
           ))}
         </div>
       ) : establishments?.length === 0 ? (
-        <Card className="border-slate-800 bg-slate-900/60 p-12 text-center">
-          <div className="mx-auto flex size-14 items-center justify-center rounded-full bg-slate-800 text-slate-400">
+        <Card className="border-border bg-card p-12 text-center">
+          <div className="mx-auto flex size-14 items-center justify-center rounded-full bg-muted text-muted-foreground">
             <Building2 className="size-7" />
           </div>
-          <h3 className="mt-4 text-base font-semibold text-white">
+          <h3 className="mt-4 text-base font-semibold text-foreground">
             No se encontraron establecimientos
           </h3>
-          <p className="mt-1 text-sm text-slate-400">
+          <p className="mt-1 text-sm text-muted-foreground">
             Intenta con otro término de búsqueda o crea uno nuevo.
           </p>
           <Button
             onClick={() => setIsCreateOpen(true)}
-            className="mt-6 bg-indigo-600 hover:bg-indigo-500"
+            className="mt-6 bg-indigo-600 hover:bg-indigo-500 text-white"
           >
             <Plus className="mr-2 size-4" />
             Crear Establecimiento
@@ -286,84 +286,84 @@ export default function EstablecimientosPage() {
           {establishments?.map((est) => (
             <Card
               key={est.id}
-              className="flex flex-col justify-between border-slate-800 bg-slate-900/60 backdrop-blur transition-all duration-200 hover:border-slate-700 hover:shadow-xl hover:shadow-indigo-500/5"
+              className="flex flex-col justify-between border-border bg-card transition-all duration-200 hover:border-border hover:shadow-md"
             >
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between gap-2">
                   <div className="space-y-1">
-                    <CardTitle className="text-lg font-bold text-white leading-tight">
+                    <CardTitle className="text-lg font-bold text-foreground leading-tight">
                       {est.name}
                     </CardTitle>
                     {est.legalName && (
-                      <p className="text-xs text-slate-400 truncate">{est.legalName}</p>
+                      <p className="text-xs text-muted-foreground truncate">{est.legalName}</p>
                     )}
                   </div>
                   {est.active ? (
-                    <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20 text-[10px]">
+                    <Badge className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20 text-[10px]">
                       Activo
                     </Badge>
                   ) : (
-                    <Badge className="bg-rose-500/10 text-rose-400 border-rose-500/20 text-[10px]">
+                    <Badge className="bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20 text-[10px]">
                       Inactivo
                     </Badge>
                   )}
                 </div>
               </CardHeader>
 
-              <CardContent className="space-y-3.5 pb-4 text-xs text-slate-300">
+              <CardContent className="space-y-3.5 pb-4 text-xs text-foreground">
                 <div className="space-y-1.5">
                   {est.address && (
-                    <div className="flex items-center gap-2 text-slate-400">
-                      <MapPin className="size-3.5 shrink-0 text-slate-500" />
+                    <div className="flex items-center gap-2 text-muted-foreground">
+                      <MapPin className="size-3.5 shrink-0 text-muted-foreground" />
                       <span className="truncate">{est.address}</span>
                     </div>
                   )}
                   {est.phone && (
-                    <div className="flex items-center gap-2 text-slate-400">
-                      <Phone className="size-3.5 shrink-0 text-slate-500" />
+                    <div className="flex items-center gap-2 text-muted-foreground">
+                      <Phone className="size-3.5 shrink-0 text-muted-foreground" />
                       <span>{est.phone}</span>
                     </div>
                   )}
                   {est.contactEmail && (
-                    <div className="flex items-center gap-2 text-slate-400">
-                      <Mail className="size-3.5 shrink-0 text-slate-500" />
+                    <div className="flex items-center gap-2 text-muted-foreground">
+                      <Mail className="size-3.5 shrink-0 text-muted-foreground" />
                       <span className="truncate">{est.contactEmail}</span>
                     </div>
                   )}
                 </div>
 
                 {/* Métricas rápidas */}
-                <div className="grid grid-cols-3 gap-2 rounded-xl bg-slate-950/60 p-2.5 text-center ring-1 ring-slate-800">
+                <div className="grid grid-cols-3 gap-2 rounded-xl bg-muted/50 p-2.5 text-center ring-1 ring-border">
                   <div>
-                    <p className="text-[10px] uppercase text-slate-400">Admins</p>
-                    <p className="text-sm font-bold text-white">{est.usersCount}</p>
+                    <p className="text-[10px] uppercase text-muted-foreground">Admins</p>
+                    <p className="text-sm font-bold text-foreground">{est.usersCount}</p>
                   </div>
                   <div>
-                    <p className="text-[10px] uppercase text-slate-400">Personal</p>
-                    <p className="text-sm font-bold text-white">{est.employeesCount}</p>
+                    <p className="text-[10px] uppercase text-muted-foreground">Personal</p>
+                    <p className="text-sm font-bold text-foreground">{est.employeesCount}</p>
                   </div>
                   <div>
-                    <p className="text-[10px] uppercase text-slate-400">Órdenes</p>
-                    <p className="text-sm font-bold text-indigo-300">{est.ordersCount}</p>
+                    <p className="text-[10px] uppercase text-muted-foreground">Órdenes</p>
+                    <p className="text-sm font-bold text-indigo-600 dark:text-indigo-400">{est.ordersCount}</p>
                   </div>
                 </div>
               </CardContent>
 
               {/* Botones de acción */}
-              <div className="flex items-center gap-2 border-t border-slate-800/80 p-3 bg-slate-950/30">
+              <div className="flex items-center gap-2 border-t border-border p-3 bg-muted/20">
                 <Button
                   variant="outline"
                   size="sm"
-                  className="flex-1 border-slate-800 bg-slate-800/60 text-xs text-slate-200 hover:bg-slate-800 hover:text-white"
+                  className="flex-1 text-xs text-foreground hover:bg-accent"
                   onClick={() => setManagingAdminsEst(est)}
                 >
-                  <ShieldCheck className="mr-1.5 size-3.5 text-indigo-400" />
+                  <ShieldCheck className="mr-1.5 size-3.5 text-indigo-600 dark:text-indigo-400" />
                   Admins ({est.usersCount})
                 </Button>
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="size-8 text-slate-400 hover:bg-slate-800 hover:text-white"
+                  className="size-8 text-muted-foreground hover:text-foreground"
                   onClick={() => setEditingEstablishment(est)}
                   title="Editar datos"
                 >
@@ -379,20 +379,20 @@ export default function EstablecimientosPage() {
       {/* Modal: CREAR ESTABLECIMIENTO + ADMINISTRADOR                       */}
       {/* ================================================================= */}
       <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl bg-slate-900 border-slate-800 text-white">
+        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl bg-card border-border text-foreground">
           <form onSubmit={handleCreateSubmit}>
             <DialogHeader>
-              <DialogTitle className="flex items-center gap-2 text-xl text-white">
-                <Building2 className="size-5 text-indigo-400" />
+              <DialogTitle className="flex items-center gap-2 text-xl text-foreground">
+                <Building2 className="size-5 text-indigo-600 dark:text-indigo-400" />
                 Nuevo Establecimiento
               </DialogTitle>
-              <DialogDescription className="text-slate-400">
+              <DialogDescription className="text-muted-foreground">
                 Registra la sede del lavadero y crea a su administrador principal en un solo paso.
               </DialogDescription>
             </DialogHeader>
 
             {createError && (
-              <div className="mt-4 rounded-lg bg-rose-500/10 p-3 text-sm text-rose-400 border border-rose-500/20">
+              <div className="mt-4 rounded-lg bg-rose-500/10 p-3 text-sm text-rose-600 dark:text-rose-400 border border-rose-500/20">
                 {createError}
               </div>
             )}
@@ -400,13 +400,13 @@ export default function EstablecimientosPage() {
             <div className="space-y-6 py-4">
               {/* Sección 1: Datos del Lavadero */}
               <div className="space-y-4">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-indigo-400">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">
                   1. Información del Lavadero
                 </h4>
 
                 <div className="grid gap-3 sm:grid-cols-2">
                   <div className="space-y-1.5 sm:col-span-2">
-                    <Label htmlFor="name" className="text-xs text-slate-300">
+                    <Label htmlFor="name" className="text-xs text-foreground">
                       Nombre Comercial del Establecimiento *
                     </Label>
                     <Input
@@ -414,13 +414,13 @@ export default function EstablecimientosPage() {
                       placeholder="Ej. AutoLavado Express Norte"
                       value={newEst.name}
                       onChange={(e) => setNewEst({ ...newEst, name: e.target.value })}
-                      className="bg-slate-950 border-slate-800 text-white"
+                      className="bg-background border-border text-foreground"
                       required
                     />
                   </div>
 
                   <div className="space-y-1.5">
-                    <Label htmlFor="legalName" className="text-xs text-slate-300">
+                    <Label htmlFor="legalName" className="text-xs text-foreground">
                       Razón Social (Opcional)
                     </Label>
                     <Input
@@ -428,12 +428,12 @@ export default function EstablecimientosPage() {
                       placeholder="Ej. Inversiones AutoClean S.A.S."
                       value={newEst.legalName ?? ''}
                       onChange={(e) => setNewEst({ ...newEst, legalName: e.target.value })}
-                      className="bg-slate-950 border-slate-800 text-white"
+                      className="bg-background border-border text-foreground"
                     />
                   </div>
 
                   <div className="space-y-1.5">
-                    <Label htmlFor="taxId" className="text-xs text-slate-300">
+                    <Label htmlFor="taxId" className="text-xs text-foreground">
                       NIT / Identificación Fiscal
                     </Label>
                     <Input
@@ -441,12 +441,12 @@ export default function EstablecimientosPage() {
                       placeholder="900.123.456-7"
                       value={newEst.taxId ?? ''}
                       onChange={(e) => setNewEst({ ...newEst, taxId: e.target.value })}
-                      className="bg-slate-950 border-slate-800 text-white"
+                      className="bg-background border-border text-foreground"
                     />
                   </div>
 
                   <div className="space-y-1.5">
-                    <Label htmlFor="phone" className="text-xs text-slate-300">
+                    <Label htmlFor="phone" className="text-xs text-foreground">
                       Teléfono de Contacto
                     </Label>
                     <Input
@@ -454,12 +454,12 @@ export default function EstablecimientosPage() {
                       placeholder="300 123 4567"
                       value={newEst.phone ?? ''}
                       onChange={(e) => setNewEst({ ...newEst, phone: e.target.value })}
-                      className="bg-slate-950 border-slate-800 text-white"
+                      className="bg-background border-border text-foreground"
                     />
                   </div>
 
                   <div className="space-y-1.5">
-                    <Label htmlFor="address" className="text-xs text-slate-300">
+                    <Label htmlFor="address" className="text-xs text-foreground">
                       Dirección Física
                     </Label>
                     <Input
@@ -467,20 +467,20 @@ export default function EstablecimientosPage() {
                       placeholder="Calle 10 # 45-20"
                       value={newEst.address ?? ''}
                       onChange={(e) => setNewEst({ ...newEst, address: e.target.value })}
-                      className="bg-slate-950 border-slate-800 text-white"
+                      className="bg-background border-border text-foreground"
                     />
                   </div>
                 </div>
               </div>
 
               {/* Separador */}
-              <div className="border-t border-slate-800 pt-4">
+              <div className="border-t border-border pt-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h4 className="text-xs font-bold uppercase tracking-wider text-indigo-400">
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">
                       2. Administrador Principal de la Sede
                     </h4>
-                    <p className="text-xs text-slate-400">
+                    <p className="text-xs text-muted-foreground">
                       Usuario con rol ADMIN que gestionará esta sede.
                     </p>
                   </div>
@@ -492,9 +492,9 @@ export default function EstablecimientosPage() {
                 </div>
 
                 {includeAdmin && (
-                  <div className="mt-4 grid gap-3 rounded-xl border border-indigo-500/20 bg-indigo-950/20 p-4 sm:grid-cols-2">
+                  <div className="mt-4 grid gap-3 rounded-xl border border-indigo-500/20 bg-indigo-500/5 p-4 sm:grid-cols-2">
                     <div className="space-y-1.5 sm:col-span-2">
-                      <Label className="text-xs text-slate-300">
+                      <Label className="text-xs text-foreground">
                         Nombre Completo del Administrador *
                       </Label>
                       <Input
@@ -506,13 +506,13 @@ export default function EstablecimientosPage() {
                             admin: { ...newEst.admin!, name: e.target.value },
                           })
                         }
-                        className="bg-slate-950 border-slate-800 text-white"
+                        className="bg-background border-border text-foreground"
                         required={includeAdmin}
                       />
                     </div>
 
                     <div className="space-y-1.5">
-                      <Label className="text-xs text-slate-300">
+                      <Label className="text-xs text-foreground">
                         Correo Electrónico (Login) *
                       </Label>
                       <Input
@@ -525,13 +525,13 @@ export default function EstablecimientosPage() {
                             admin: { ...newEst.admin!, email: e.target.value },
                           })
                         }
-                        className="bg-slate-950 border-slate-800 text-white"
+                        className="bg-background border-border text-foreground"
                         required={includeAdmin}
                       />
                     </div>
 
                     <div className="space-y-1.5">
-                      <Label className="text-xs text-slate-300">
+                      <Label className="text-xs text-foreground">
                         Contraseña de Acceso *
                       </Label>
                       <Input
@@ -544,7 +544,7 @@ export default function EstablecimientosPage() {
                             admin: { ...newEst.admin!, password: e.target.value },
                           })
                         }
-                        className="bg-slate-950 border-slate-800 text-white"
+                        className="bg-background border-border text-foreground"
                         required={includeAdmin}
                       />
                     </div>
@@ -558,7 +558,7 @@ export default function EstablecimientosPage() {
                 type="button"
                 variant="ghost"
                 onClick={() => setIsCreateOpen(false)}
-                className="text-slate-400 hover:text-white"
+                className="text-muted-foreground hover:text-foreground"
               >
                 Cancelar
               </Button>
@@ -586,23 +586,23 @@ export default function EstablecimientosPage() {
       {/* ================================================================= */}
       {editingEstablishment && (
         <Dialog open={Boolean(editingEstablishment)} onOpenChange={(open) => !open && setEditingEstablishment(null)}>
-          <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-xl bg-slate-900 border-slate-800 text-white">
+          <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-xl bg-card border-border text-foreground">
             <form onSubmit={handleUpdateSubmit}>
               <DialogHeader>
-                <DialogTitle className="text-xl text-white">
+                <DialogTitle className="text-xl text-foreground">
                   Editar Establecimiento
                 </DialogTitle>
-                <DialogDescription className="text-slate-400">
+                <DialogDescription className="text-muted-foreground">
                   Modifica los datos generales y el estado de operación de la sede.
                 </DialogDescription>
               </DialogHeader>
 
               <div className="space-y-4 py-4">
                 {/* Switch Estado Activo / Inactivo */}
-                <div className="flex items-center justify-between rounded-xl bg-slate-950 p-3.5 border border-slate-800">
+                <div className="flex items-center justify-between rounded-xl bg-muted/50 p-3.5 border border-border">
                   <div>
-                    <p className="text-sm font-semibold text-white">Estado de la Sede</p>
-                    <p className="text-xs text-slate-400">
+                    <p className="text-sm font-semibold text-foreground">Estado de la Sede</p>
+                    <p className="text-xs text-muted-foreground">
                       {editingEstablishment.active
                         ? 'Establecimiento activo y habilitado para operar'
                         : 'Establecimiento suspendido (usuarios no podrán iniciar sesión)'}
@@ -618,59 +618,59 @@ export default function EstablecimientosPage() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label className="text-xs text-slate-300">Nombre Comercial</Label>
+                  <Label className="text-xs text-foreground">Nombre Comercial</Label>
                   <Input
                     value={editingEstablishment.name}
                     onChange={(e) =>
                       setEditingEstablishment({ ...editingEstablishment, name: e.target.value })
                     }
-                    className="bg-slate-950 border-slate-800 text-white"
+                    className="bg-background border-border text-foreground"
                     required
                   />
                 </div>
 
                 <div className="grid gap-3 sm:grid-cols-2">
                   <div className="space-y-1.5">
-                    <Label className="text-xs text-slate-300">Razón Social</Label>
+                    <Label className="text-xs text-foreground">Razón Social</Label>
                     <Input
                       value={editingEstablishment.legalName ?? ''}
                       onChange={(e) =>
                         setEditingEstablishment({ ...editingEstablishment, legalName: e.target.value })
                       }
-                      className="bg-slate-950 border-slate-800 text-white"
+                      className="bg-background border-border text-foreground"
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-xs text-slate-300">NIT / Identificación</Label>
+                    <Label className="text-xs text-foreground">NIT / Identificación</Label>
                     <Input
                       value={editingEstablishment.taxId ?? ''}
                       onChange={(e) =>
                         setEditingEstablishment({ ...editingEstablishment, taxId: e.target.value })
                       }
-                      className="bg-slate-950 border-slate-800 text-white"
+                      className="bg-background border-border text-foreground"
                     />
                   </div>
                 </div>
 
                 <div className="grid gap-3 sm:grid-cols-2">
                   <div className="space-y-1.5">
-                    <Label className="text-xs text-slate-300">Teléfono</Label>
+                    <Label className="text-xs text-foreground">Teléfono</Label>
                     <Input
                       value={editingEstablishment.phone ?? ''}
                       onChange={(e) =>
                         setEditingEstablishment({ ...editingEstablishment, phone: e.target.value })
                       }
-                      className="bg-slate-950 border-slate-800 text-white"
+                      className="bg-background border-border text-foreground"
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-xs text-slate-300">Dirección</Label>
+                    <Label className="text-xs text-foreground">Dirección</Label>
                     <Input
                       value={editingEstablishment.address ?? ''}
                       onChange={(e) =>
                         setEditingEstablishment({ ...editingEstablishment, address: e.target.value })
                       }
-                      className="bg-slate-950 border-slate-800 text-white"
+                      className="bg-background border-border text-foreground"
                     />
                   </div>
                 </div>
@@ -681,7 +681,7 @@ export default function EstablecimientosPage() {
                   type="button"
                   variant="ghost"
                   onClick={() => setEditingEstablishment(null)}
-                  className="text-slate-400 hover:text-white"
+                  className="text-muted-foreground hover:text-foreground"
                 >
                   Cancelar
                 </Button>
@@ -711,15 +711,15 @@ export default function EstablecimientosPage() {
             }
           }}
         >
-          <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl bg-slate-900 border-slate-800 text-white">
+          <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl bg-card border-border text-foreground">
             <DialogHeader>
               <div className="flex items-center justify-between pr-4">
                 <div>
-                  <DialogTitle className="text-xl text-white">
+                  <DialogTitle className="text-xl text-foreground">
                     Administradores de Sede
                   </DialogTitle>
-                  <DialogDescription className="text-slate-400">
-                    Establecimiento: <strong className="text-white">{managingAdminsEst.name}</strong>
+                  <DialogDescription className="text-muted-foreground">
+                    Establecimiento: <strong className="text-foreground">{managingAdminsEst.name}</strong>
                   </DialogDescription>
                 </div>
                 {!isAddAdminOpen && (
@@ -740,10 +740,10 @@ export default function EstablecimientosPage() {
               {isAddAdminOpen ? (
                 <form
                   onSubmit={handleAddAdminSubmit}
-                  className="rounded-xl border border-indigo-500/30 bg-slate-950 p-4 space-y-3.5 animate-fade-in"
+                  className="rounded-xl border border-indigo-500/30 bg-muted/40 p-4 space-y-3.5 animate-fade-in"
                 >
                   <div className="flex items-center justify-between">
-                    <h4 className="text-xs font-bold uppercase tracking-wider text-indigo-400">
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">
                       Crear Nuevo Administrador
                     </h4>
                     <Button
@@ -751,112 +751,104 @@ export default function EstablecimientosPage() {
                       variant="ghost"
                       size="sm"
                       onClick={() => setIsAddAdminOpen(false)}
-                      className="text-xs text-slate-400"
+                      className="text-xs text-muted-foreground hover:text-foreground"
                     >
                       Cancelar
                     </Button>
                   </div>
 
                   {adminError && (
-                    <div className="rounded bg-rose-500/10 p-2 text-xs text-rose-400 border border-rose-500/20">
+                    <div className="rounded bg-rose-500/10 p-2 text-xs text-rose-600 dark:text-rose-400 border border-rose-500/20">
                       {adminError}
                     </div>
                   )}
 
                   <div className="grid gap-3 sm:grid-cols-2">
                     <div className="space-y-1 sm:col-span-2">
-                      <Label className="text-xs text-slate-300">Nombre Completo</Label>
+                      <Label className="text-xs text-foreground">Nombre Completo</Label>
                       <Input
                         placeholder="Nombre y Apellidos"
                         value={newAdminData.name}
                         onChange={(e) => setNewAdminData({ ...newAdminData, name: e.target.value })}
-                        className="bg-slate-900 border-slate-800 text-white"
+                        className="bg-background border-border text-foreground"
                         required
                       />
                     </div>
                     <div className="space-y-1">
-                      <Label className="text-xs text-slate-300">Correo Electrónico</Label>
+                      <Label className="text-xs text-foreground">Correo Electrónico</Label>
                       <Input
                         type="email"
                         placeholder="correo@ejemplo.com"
                         value={newAdminData.email}
                         onChange={(e) => setNewAdminData({ ...newAdminData, email: e.target.value })}
-                        className="bg-slate-900 border-slate-800 text-white"
+                        className="bg-background border-border text-foreground"
                         required
                       />
                     </div>
                     <div className="space-y-1">
-                      <Label className="text-xs text-slate-300">Contraseña</Label>
+                      <Label className="text-xs text-foreground">Contraseña</Label>
                       <Input
                         type="password"
                         placeholder="Mínimo 6 caracteres"
                         value={newAdminData.password}
                         onChange={(e) => setNewAdminData({ ...newAdminData, password: e.target.value })}
-                        className="bg-slate-900 border-slate-800 text-white"
+                        className="bg-background border-border text-foreground"
                         required
                       />
                     </div>
                   </div>
 
-                  <Button
-                    type="submit"
-                    disabled={createAdminMutation.isPending}
-                    className="w-full bg-indigo-600 text-white hover:bg-indigo-500"
-                  >
-                    {createAdminMutation.isPending ? 'Creando...' : 'Guardar y Asignar'}
-                  </Button>
+                  <div className="flex justify-end pt-2">
+                    <Button
+                      type="submit"
+                      disabled={createAdminMutation.isPending}
+                      className="bg-indigo-600 hover:bg-indigo-500 text-white"
+                    >
+                      {createAdminMutation.isPending ? 'Creando...' : 'Guardar Administrador'}
+                    </Button>
+                  </div>
                 </form>
               ) : null}
 
-              {/* Listado de administradores y usuarios */}
+              {/* Lista de Administradores actuales */}
               <div className="space-y-2">
-                <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-400">
-                  Usuarios Vinculados a esta Sede
+                <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                  Administradores Asignados ({admins?.length ?? 0})
                 </h4>
 
                 {isLoadingAdmins ? (
-                  <div className="space-y-2">
-                    {[1, 2].map((n) => (
-                      <div key={n} className="h-14 animate-pulse rounded-xl bg-slate-950" />
-                    ))}
+                  <div className="py-6 text-center text-xs text-muted-foreground">
+                    <Loader2 className="mx-auto size-5 animate-spin" />
+                    <p className="mt-2">Cargando administradores...</p>
                   </div>
                 ) : admins?.length === 0 ? (
-                  <div className="rounded-xl border border-slate-800 bg-slate-950/60 p-6 text-center text-xs text-slate-400">
-                    No hay administradores registrados para esta sede.
+                  <div className="rounded-xl border border-dashed border-border p-6 text-center text-xs text-muted-foreground">
+                    No hay administradores asignados a esta sede todavía.
                   </div>
                 ) : (
-                  <div className="divide-y divide-slate-800 rounded-xl border border-slate-800 bg-slate-950">
+                  <div className="divide-y divide-border rounded-xl border border-border bg-card">
                     {admins?.map((admin) => (
                       <div
                         key={admin.id}
                         className="flex items-center justify-between p-3 text-xs"
                       >
                         <div className="flex items-center gap-3">
-                          <div className="flex size-8 items-center justify-center rounded-lg bg-slate-800 text-slate-300 font-semibold">
+                          <div className="flex size-8 items-center justify-center rounded-lg bg-indigo-500/10 font-bold text-indigo-600 dark:text-indigo-400">
                             {admin.name.charAt(0)}
                           </div>
                           <div>
-                            <p className="font-semibold text-white">{admin.name}</p>
-                            <p className="text-slate-400">{admin.email}</p>
+                            <p className="font-semibold text-foreground">{admin.name}</p>
+                            <p className="text-muted-foreground">{admin.email}</p>
                           </div>
                         </div>
 
                         <div className="flex items-center gap-2">
-                          <Badge
-                            className={
-                              admin.role === 'ADMIN'
-                                ? 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20'
-                                : 'bg-slate-800 text-slate-300'
-                            }
-                          >
-                            {admin.role}
-                          </Badge>
                           {admin.active ? (
-                            <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20 text-[10px]">
+                            <Badge className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20 text-[10px]">
                               Activo
                             </Badge>
                           ) : (
-                            <Badge className="bg-rose-500/10 text-rose-400 border-rose-500/20 text-[10px]">
+                            <Badge className="bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20 text-[10px]">
                               Inactivo
                             </Badge>
                           )}
@@ -870,9 +862,9 @@ export default function EstablecimientosPage() {
 
             <DialogFooter>
               <Button
-                variant="ghost"
+                type="button"
+                variant="outline"
                 onClick={() => setManagingAdminsEst(null)}
-                className="text-slate-400 hover:text-white"
               >
                 Cerrar
               </Button>
