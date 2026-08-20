@@ -1,7 +1,7 @@
 'use client';
 
 import { Link, useLocation } from 'react-router-dom';
-import { ChevronsLeft, Droplets, LogOut, Plus, Settings, X } from 'lucide-react';
+import { ChevronsLeft, LogOut, Plus, Settings, ShieldCheck, X } from 'lucide-react';
 import { useAuth } from '@/components/auth-provider';
 import { SIDEBAR, sectionsFor } from '@/components/layout/nav-items';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -52,10 +52,10 @@ export function Sidebar({
         >
           <Link
             to="/dashboard"
-            className="grid size-10 shrink-0 place-items-center rounded-xl bg-primary text-primary-foreground transition-transform hover:scale-105"
+            className="grid size-10 shrink-0 place-items-center rounded-xl bg-white p-1 shadow-sm transition-transform hover:scale-105"
             aria-label="Ir al resumen"
           >
-            <Droplets className="size-5" aria-hidden />
+            <img src="/DetailOps.png" alt="DetailOps" className="size-8 object-contain rounded-lg" />
           </Link>
 
           <div className="mt-5 flex w-full flex-1 flex-col items-center gap-1 overflow-y-auto no-scrollbar">
@@ -162,7 +162,7 @@ export function Sidebar({
           <div className="flex items-start justify-between gap-2 px-5 pb-3 pt-5">
             <div className="min-w-0">
               <p className="truncate text-lg font-semibold leading-tight tracking-tight">
-                {business?.name ?? 'Mi Lavadero'}
+                {business?.name ?? 'DetailOps'}
               </p>
               <p className="truncate text-xs text-muted-foreground">Panel de control</p>
             </div>

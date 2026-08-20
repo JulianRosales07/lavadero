@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { useRouter } from 'next/navigation';
-import { Droplets, Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, ShieldCheck } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/components/auth-provider';
 import { Button } from '@/components/ui/button';
@@ -55,9 +55,9 @@ export default function LoginPage() {
 
           <div className="relative z-10 flex flex-col items-center gap-3 text-white">
             <div className="flex size-24 items-center justify-center rounded-full bg-white/20 shadow-lg ring-4 ring-white/30 backdrop-blur-sm">
-              <Droplets className="size-12 text-white drop-shadow-md" aria-hidden />
+              <ShieldCheck className="size-12 text-white drop-shadow-md" aria-hidden />
             </div>
-            <span className="text-3xl font-bold tracking-tight">Lavadero</span>
+            <span className="text-3xl font-bold tracking-tight">DetailOps</span>
           </div>
 
           <div className="pointer-events-none absolute bottom-0 left-0 w-full leading-none" aria-hidden>
@@ -153,13 +153,13 @@ export default function LoginPage() {
           {/* Logo y texto */}
           <div className="relative z-10 flex flex-col items-center gap-7 px-10 text-center text-white">
             <div className="flex size-28 items-center justify-center rounded-full bg-white/20 shadow-xl ring-4 ring-white/30 backdrop-blur-sm">
-              <Droplets className="size-14 text-white drop-shadow-md" aria-hidden />
+              <ShieldCheck className="size-14 text-white drop-shadow-md" aria-hidden />
             </div>
 
             <div className="space-y-3">
-              <h1 className="text-4xl font-bold tracking-tight">Lavadero</h1>
+              <h1 className="text-4xl font-bold tracking-tight">DetailOps</h1>
               <p className="max-w-sm text-base leading-relaxed text-blue-100">
-                Administra tu lavadero de manera sencilla. Órdenes, clientes, cobros y reportes en un solo lugar.
+                Administra tu negocio de detailing y autolavado de manera sencilla. Órdenes, clientes, cobros y reportes en un solo lugar.
               </p>
             </div>
 
@@ -209,7 +209,7 @@ export default function LoginPage() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="tucorreo@lavadero.com"
+                  placeholder="tucorreo@detailops.com"
                   className="h-12 rounded-xl border-gray-200 bg-gray-50/80 px-4 text-base focus:border-blue-400 focus:ring-blue-400"
                 />
               </div>

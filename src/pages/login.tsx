@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Droplets, Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, ShieldCheck } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/components/auth-provider';
 import { ThemeToggle } from '@/components/layout/theme-toggle';
@@ -88,10 +88,10 @@ export default function LoginPage() {
           />
 
           <div className="relative z-10 flex flex-col items-center gap-3 text-white">
-            <div className="flex size-24 items-center justify-center rounded-full bg-white/20 shadow-lg ring-4 ring-white/30 backdrop-blur-md">
-              <Droplets className="size-12 text-white drop-shadow-md" aria-hidden />
+            <div className="flex size-24 items-center justify-center rounded-full bg-white/95 p-2.5 shadow-lg ring-4 ring-white/40 backdrop-blur-md">
+              <img src="/DetailOps.png" alt="DetailOps" className="size-full object-contain" />
             </div>
-            <span className="text-3xl font-bold tracking-tight">Lavadero</span>
+            <span className="text-3xl font-bold tracking-tight">DetailOps</span>
           </div>
 
           <div className="pointer-events-none absolute bottom-0 left-0 w-full leading-none" aria-hidden>
@@ -122,7 +122,7 @@ export default function LoginPage() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="tucorreo@lavadero.com"
+                  placeholder="tucorreo@detailops.com"
                   className="h-12 rounded-xl border-border bg-card px-4 text-base text-foreground placeholder:text-muted-foreground focus:border-primary"
                 />
               </div>
@@ -205,14 +205,14 @@ export default function LoginPage() {
 
           {/* Logo y texto con glassmorphism */}
           <div className="relative z-10 flex flex-col items-center gap-7 px-10 text-center text-white">
-            <div className="flex size-28 items-center justify-center rounded-full bg-white/20 shadow-2xl ring-4 ring-white/40 backdrop-blur-md transition-transform hover:scale-105 duration-300">
-              <Droplets className="size-14 text-white drop-shadow-lg" aria-hidden />
+            <div className="flex size-28 items-center justify-center rounded-full bg-transparent p-3.5 shadow-2xl ring-4 ring-white/50 backdrop-blur-md transition-transform hover:scale-105 duration-300">
+              <img src="/DetailOps1.png" alt="DetailOps" className="size-full object-contain" />
             </div>
 
             <div className="space-y-3">
-              <h1 className="text-4xl font-bold tracking-tight drop-shadow-md">Lavadero</h1>
+              <h1 className="text-4xl font-bold tracking-tight drop-shadow-md">DetailOps</h1>
               <p className="max-w-sm text-base leading-relaxed text-blue-50 drop-shadow-sm">
-                Administra tu lavadero de manera sencilla. Órdenes, clientes, cobros y reportes en un solo lugar.
+                Administra tu negocio de detailing y autolavado de manera sencilla. Órdenes, clientes, cobros y reportes en un solo lugar.
               </p>
             </div>
 
@@ -261,7 +261,7 @@ export default function LoginPage() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="tucorreo@lavadero.com"
+                  placeholder="tucorreo@detailops.com"
                   className="h-12 rounded-xl border-border bg-card px-4 text-base text-foreground placeholder:text-muted-foreground focus:border-primary"
                 />
               </div>

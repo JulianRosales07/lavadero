@@ -3,7 +3,7 @@
 import * as React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { ArrowLeft, Car, Droplets, Loader2, Search, User, X } from 'lucide-react';
+import { ArrowLeft, Car, Loader2, Search, ShieldCheck, User, X } from 'lucide-react';
 import { ThemeToggle } from '@/components/layout/theme-toggle';
 import { NAV_SECTIONS } from '@/components/layout/nav-items';
 import { StatusBadge } from '@/components/shared/status-badge';
@@ -29,7 +29,7 @@ function useScreenTitle() {
       (candidate) => pathname === candidate.href || pathname.startsWith(`${candidate.href}/`),
     );
 
-    return { title: item?.hint ?? item?.label ?? 'Lavadero', back: null as string | null };
+    return { title: item?.hint ?? item?.label ?? 'DetailOps', back: null as string | null };
   }, [pathname]);
 }
 
@@ -60,17 +60,17 @@ export function MobileTopBar() {
         ) : (
           <Link
             to="/dashboard"
-            className="grid size-9 shrink-0 place-items-center rounded-xl bg-primary text-primary-foreground"
+            className="grid size-9 shrink-0 place-items-center rounded-xl bg-white p-0.5 shadow-sm"
             aria-label="Inicio"
           >
-            <Droplets className="size-[18px]" aria-hidden />
+            <img src="/DetailOps.png" alt="DetailOps" className="size-7 object-contain rounded-lg" />
           </Link>
         )}
 
         <div className="min-w-0 flex-1">
           <p className="truncate text-[15px] font-semibold leading-tight">{title}</p>
           <p className="truncate text-[11px] text-muted-foreground">
-            {business?.name ?? 'Mi Lavadero'}
+            {business?.name ?? 'DetailOps'}
           </p>
         </div>
 

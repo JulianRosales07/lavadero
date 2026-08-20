@@ -116,10 +116,10 @@ export default function SuperAdminLayout() {
           {/* Logo */}
           <Link
             to="/superadmin/dashboard"
-            className="grid size-10 shrink-0 place-items-center rounded-xl bg-primary text-primary-foreground transition-transform hover:scale-105"
+            className="grid size-10 shrink-0 place-items-center rounded-xl bg-transparent p-1 shadow-sm transition-transform hover:scale-105"
             aria-label="Panel Global"
           >
-            <ShieldCheck className="size-5" aria-hidden />
+            <img src="/DetailOps1.png" alt="DetailOps" className="size-8 object-contain rounded-lg" />
           </Link>
 
           {/* Secciones */}
