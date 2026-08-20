@@ -30,6 +30,7 @@ interface Tab {
 }
 
 const ROLE_TABS: Record<UserRole, Tab[]> = {
+  SUPER_ADMIN: [],
   ADMIN: [
     { href: '/dashboard', label: 'Inicio', icon: LayoutDashboard },
     { href: '/ordenes', label: 'Órdenes', icon: ClipboardList },

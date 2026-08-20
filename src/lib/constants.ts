@@ -1,4 +1,4 @@
-﻿import type {
+import type {
   DamageType,
   EvidenceStage,
   ExpenseCategory,
@@ -133,6 +133,7 @@ export const EXPENSE_CATEGORY_META: Record<ExpenseCategory, { label: string }> =
 export const EXPENSE_CATEGORIES = Object.keys(EXPENSE_CATEGORY_META) as ExpenseCategory[];
 
 export const USER_ROLE_META: Record<UserRole, { label: string; description: string }> = {
+  SUPER_ADMIN: { label: 'Super Admin', description: 'Gestión global de la plataforma' },
   ADMIN: { label: 'Administrador', description: 'Acceso total, incluye catálogo y reportes' },
   CASHIER: { label: 'Cajero', description: 'Órdenes, cobros y clientes' },
   OPERATOR: { label: 'Operario', description: 'Actualiza el estado de las órdenes' },

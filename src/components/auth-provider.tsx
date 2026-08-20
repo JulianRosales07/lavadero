@@ -12,6 +12,7 @@ interface AuthContextValue {
   loading: boolean;
   isLoading: boolean;
   isAdmin: boolean;
+  isSuperAdmin: boolean;
   login: (email: string, password: string) => Promise<AuthUser>;
   logout: () => void;
   refresh: () => Promise<void>;
@@ -69,7 +70,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       session: user,
       loading,
       isLoading: loading,
-      isAdmin: user?.role === 'ADMIN',
+      isAdmin: user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN',
+      isSuperAdmin: user?.role === 'SUPER_ADMIN',
       login,
       logout,
       refresh,

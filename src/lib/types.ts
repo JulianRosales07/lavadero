@@ -2,7 +2,7 @@
 //  Tipos de la API (espejo del backend)
 // =====================================================================
 
-export type UserRole = 'ADMIN' | 'CASHIER' | 'OPERATOR';
+export type UserRole = 'SUPER_ADMIN' | 'ADMIN' | 'CASHIER' | 'OPERATOR';
 export type VehicleType = 'CAR' | 'PICKUP' | 'MOTORCYCLE' | 'TRUCK';
 export type EmployeeStatus = 'ACTIVE' | 'INACTIVE';
 export type OrderStatus = 'PENDING' | 'IN_PROGRESS' | 'READY' | 'FINISHED' | 'CANCELLED';
@@ -21,7 +21,72 @@ export interface AuthUser {
   active: boolean;
   avatarUrl: string | null;
   employeeId: string | null;
+  businessId: string | null;
+  businessName?: string | null;
 }
+
+export interface SuperAdminStats {
+  totalBusinesses: number;
+  activeBusinesses: number;
+  inactiveBusinesses: number;
+  totalAdmins: number;
+  totalUsers: number;
+  totalOrders: number;
+  totalRevenue: number;
+}
+
+export interface Establishment {
+  id: string;
+  name: string;
+  legalName: string | null;
+  taxId: string | null;
+  phone: string | null;
+  address: string | null;
+  contactName: string | null;
+  contactEmail: string | null;
+  logoUrl: string | null;
+  currency: string;
+  currencySign: string;
+  active: boolean;
+  ticketWidth: '58mm' | '80mm';
+  usersCount: number;
+  employeesCount: number;
+  ordersCount: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateEstablishmentInput {
+  name: string;
+  legalName?: string | null;
+  taxId?: string | null;
+  phone?: string | null;
+  address?: string | null;
+  contactName?: string | null;
+  contactEmail?: string | null;
+  currency?: string;
+  currencySign?: string;
+  ticketWidth?: '58mm' | '80mm';
+  active?: boolean;
+  admin?: {
+    name: string;
+    email: string;
+    password: string;
+  };
+}
+
+export interface PlatformUser {
+  id: string;
+  name: string;
+  email: string;
+  role: UserRole;
+  active: boolean;
+  avatarUrl: string | null;
+  createdAt: string;
+  businessId: string | null;
+  businessName: string;
+}
+
 
 export interface Business {
   id: string;
