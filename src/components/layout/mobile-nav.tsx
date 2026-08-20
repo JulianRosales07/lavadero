@@ -12,11 +12,13 @@ import {
   MoreHorizontal,
   Plus,
   Settings,
+  UserCircle,
   Users,
   Wallet,
 } from 'lucide-react';
 import { useAuth } from '@/components/auth-provider';
 import { sectionsFor } from '@/components/layout/nav-items';
+import { ThemeToggle } from '@/components/layout/theme-toggle';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
@@ -35,6 +37,7 @@ const ROLE_TABS: Record<UserRole, Tab[]> = {
     { href: '/superadmin/dashboard', label: 'Panel', icon: LayoutDashboard },
     { href: '/superadmin/establecimientos', label: 'Locales', icon: Building2 },
     { href: '/superadmin/usuarios', label: 'Usuarios', icon: Users },
+    { href: '/superadmin/perfil', label: 'Perfil', icon: UserCircle },
   ],
   ADMIN: [
     { href: '/dashboard', label: 'Inicio', icon: LayoutDashboard },
@@ -99,16 +102,20 @@ export function MobileNav() {
         style={{ transform: 'translateZ(0)' }}
         className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background pb-[env(safe-area-inset-bottom)] lg:hidden"
       >
-        <ul className={cn('grid', extra.length > 0 ? 'grid-cols-5' : 'grid-cols-5')}>
+        {/* Total de columnas = tabs + botón Más; centrado con justify-center */}
+        <ul
+          className="flex justify-center"
+          style={{ gap: 0 }}
+        >
           {tabs.map((tab) => {
             const active = isActive(tab.href);
             return (
-              <li key={tab.href}>
+              <li key={tab.href} className="flex-1 max-w-[80px]">
                 <Link
                   to={tab.href}
                   aria-current={active ? 'page' : undefined}
                   className={cn(
-                    'flex flex-col items-center gap-1 py-2.5 text-[11px] font-medium transition-colors',
+                    'flex flex-col items-center gap-1 py-2.5 text-[11px] font-medium transition-colors w-full',
                     active ? 'text-primary' : 'text-muted-foreground',
                   )}
                 >
@@ -127,7 +134,7 @@ export function MobileNav() {
             );
           })}
 
-          <li>
+          <li className="flex-1 max-w-[80px]">
             <button
               type="button"
               onClick={() => setMoreOpen(true)}
@@ -194,9 +201,15 @@ export function MobileNav() {
               })}
             </div>
 
+            {/* Toggle de tema */}
+            <div className="mt-4 flex items-center justify-between rounded-xl border border-border px-4 py-3">
+              <span className="text-sm font-medium">Apariencia</span>
+              <ThemeToggle />
+            </div>
+
             <Button
               variant="outline"
-              className="mt-4 w-full text-destructive hover:bg-destructive/10"
+              className="mt-3 w-full text-destructive hover:bg-destructive/10"
               onClick={() => {
                 setMoreOpen(false);
                 logout();
