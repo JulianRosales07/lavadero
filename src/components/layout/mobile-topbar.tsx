@@ -60,10 +60,10 @@ export function MobileTopBar() {
         ) : (
           <Link
             to="/dashboard"
-            className="grid size-9 shrink-0 place-items-center rounded-xl bg-white p-0.5 shadow-sm"
+            className="grid size-9 shrink-0 place-items-center rounded-xl bg-transparent p-0.5 shadow-sm"
             aria-label="Inicio"
           >
-            <img src="/DetailOps.png" alt="DetailOps" className="size-7 object-contain rounded-lg" />
+            <img src="/DetailOps1.png" alt="DetailOps" className="size-7 object-contain rounded-lg" />
           </Link>
         )}
 
