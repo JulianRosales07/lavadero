@@ -24,6 +24,7 @@ import ConfiguracionPage from '@/pages/configuracion';
 import SuperAdminDashboardPage from '@/pages/superadmin/dashboard';
 import EstablecimientosPage from '@/pages/superadmin/establecimientos';
 import SuperAdminUsuariosPage from '@/pages/superadmin/usuarios';
+import SuperAdminPerfilPage from '@/pages/superadmin/perfil';
 
 import type { UserRole } from '@/lib/types';
 
@@ -104,6 +105,7 @@ function App() {
           <Route path="dashboard" element={<SuperAdminDashboardPage />} />
           <Route path="establecimientos" element={<EstablecimientosPage />} />
           <Route path="usuarios" element={<SuperAdminUsuariosPage />} />
+          <Route path="perfil" element={<SuperAdminPerfilPage />} />
         </Route>
 
         {/* Sede / Lavadero Protected routes */}
