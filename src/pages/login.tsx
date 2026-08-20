@@ -19,7 +19,13 @@ export default function LoginPage() {
   const [submitting, setSubmitting] = React.useState(false);
 
   React.useEffect(() => {
-    if (!loading && user) navigate('/dashboard', { replace: true });
+    if (!loading && user) {
+      if (user.role === 'SUPER_ADMIN') {
+        navigate('/superadmin/dashboard', { replace: true });
+      } else {
+        navigate('/dashboard', { replace: true });
+      }
+    }
   }, [loading, user, navigate]);
 
   const onSubmit = async (event: React.FormEvent) => {
@@ -28,7 +34,11 @@ export default function LoginPage() {
     try {
       const authenticated = await login(email, password);
       toast.success(`Bienvenido, ${authenticated.name}`);
-      navigate('/dashboard', { replace: true });
+      if (authenticated.role === 'SUPER_ADMIN') {
+        navigate('/superadmin/dashboard', { replace: true });
+      } else {
+        navigate('/dashboard', { replace: true });
+      }
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'No se pudo iniciar sesión');
     } finally {
@@ -40,21 +50,39 @@ export default function LoginPage() {
     <>
       {/* ══ MÓVIL (< lg) ══ */}
       <div className="flex min-h-screen flex-col bg-white lg:hidden">
-        {/* Cabecera Azul */}
+        {/* Cabecera Azul con Video */}
         <div
           className="relative flex flex-col items-center justify-center overflow-hidden px-4 pb-16 pt-12 text-center"
           style={{
-            background: 'linear-gradient(160deg, #1a6fd4 0%, #1e90ff 55%, #56b4ff 100%)',
             minHeight: '38vh',
           }}
         >
+          {/* Video de Fondo Móvil */}
+          <video
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="absolute inset-0 h-full w-full object-cover"
+          >
+            <source src="/lavautos.mp4" type="video/mp4" />
+          </video>
+
+          {/* Overlay Gradiente Azul */}
+          <div
+            className="absolute inset-0"
+            style={{
+              background: 'linear-gradient(160deg, rgba(26, 111, 212, 0.85) 0%, rgba(30, 144, 255, 0.80) 55%, rgba(86, 180, 255, 0.85) 100%)',
+            }}
+          />
+
           <div
             className="pointer-events-none absolute -left-10 -top-10 size-56 rounded-full opacity-20"
             style={{ background: 'radial-gradient(circle, #ffffff 0%, transparent 70%)' }}
           />
 
           <div className="relative z-10 flex flex-col items-center gap-3 text-white">
-            <div className="flex size-24 items-center justify-center rounded-full bg-white/20 shadow-lg ring-4 ring-white/30 backdrop-blur-sm">
+            <div className="flex size-24 items-center justify-center rounded-full bg-white/20 shadow-lg ring-4 ring-white/30 backdrop-blur-md">
               <Droplets className="size-12 text-white drop-shadow-md" aria-hidden />
             </div>
             <span className="text-3xl font-bold tracking-tight">Lavadero</span>
@@ -135,12 +163,31 @@ export default function LoginPage() {
 
       {/* ══ ESCRITORIO (≥ lg) ══ */}
       <div className="hidden min-h-screen lg:flex">
-        {/* Panel Izquierdo Azul */}
+        {/* Panel Izquierdo con Video de Fondo */}
         <div
           className="relative flex w-[44%] flex-col items-center justify-center overflow-hidden"
-          style={{ background: 'linear-gradient(160deg, #1a6fd4 0%, #1e90ff 55%, #56b4ff 100%)' }}
+          style={{ background: '#1a6fd4' }}
         >
-          {/* Círculos de luz */}
+          {/* Video de Fondo Escritorio */}
+          <video
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="absolute inset-0 h-full w-full object-cover"
+          >
+            <source src="/lavautos.mp4" type="video/mp4" />
+          </video>
+
+          {/* Overlay con Gradiente Azul y Transparencia */}
+          <div
+            className="absolute inset-0"
+            style={{
+              background: 'linear-gradient(160deg, rgba(26, 111, 212, 0.82) 0%, rgba(30, 144, 255, 0.74) 55%, rgba(86, 180, 255, 0.78) 100%)',
+            }}
+          />
+
+          {/* Círculos de luz decorativos */}
           <div
             className="pointer-events-none absolute -left-20 -top-20 size-96 rounded-full opacity-20"
             style={{ background: 'radial-gradient(circle, #ffffff 0%, transparent 70%)' }}
@@ -150,21 +197,21 @@ export default function LoginPage() {
             style={{ background: 'radial-gradient(circle, #ffffff 0%, transparent 70%)' }}
           />
 
-          {/* Logo y texto */}
+          {/* Logo y texto con glassmorphism */}
           <div className="relative z-10 flex flex-col items-center gap-7 px-10 text-center text-white">
-            <div className="flex size-28 items-center justify-center rounded-full bg-white/20 shadow-xl ring-4 ring-white/30 backdrop-blur-sm">
-              <Droplets className="size-14 text-white drop-shadow-md" aria-hidden />
+            <div className="flex size-28 items-center justify-center rounded-full bg-white/20 shadow-2xl ring-4 ring-white/40 backdrop-blur-md transition-transform hover:scale-105 duration-300">
+              <Droplets className="size-14 text-white drop-shadow-lg" aria-hidden />
             </div>
 
             <div className="space-y-3">
-              <h1 className="text-4xl font-bold tracking-tight">Lavadero</h1>
-              <p className="max-w-sm text-base leading-relaxed text-blue-100">
+              <h1 className="text-4xl font-bold tracking-tight drop-shadow-md">Lavadero</h1>
+              <p className="max-w-sm text-base leading-relaxed text-blue-50 drop-shadow-sm">
                 Administra tu lavadero de manera sencilla. Órdenes, clientes, cobros y reportes en un solo lugar.
               </p>
             </div>
 
             <div className="mt-2 flex gap-2.5">
-              <span className="size-2.5 rounded-full bg-white opacity-90" />
+              <span className="size-2.5 rounded-full bg-white shadow-sm opacity-90" />
               <span className="size-2.5 rounded-full bg-white opacity-40" />
               <span className="size-2.5 rounded-full bg-white opacity-40" />
             </div>
@@ -178,7 +225,7 @@ export default function LoginPage() {
             </svg>
           </div>
 
-          {/* Curva divisor blanca (idéntica a la captura de pantalla del usuario) */}
+          {/* Curva divisor blanca hacia el formulario */}
           <div className="pointer-events-none absolute -right-1 bottom-0 top-0 w-24" aria-hidden>
             <svg viewBox="0 0 100 800" preserveAspectRatio="none" className="block h-full w-full">
               <path
