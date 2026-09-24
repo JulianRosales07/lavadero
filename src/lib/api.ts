@@ -68,21 +68,13 @@ async function request<T>(
     let serializedBody: string | FormData | undefined;
     if (options.formData) {
       serializedBody = options.formData;
-    } else if (options.body !== undefined) {
-      const isSensitive =
-        typeof options.body === 'object' &&
-        options.body !== null &&
-        (path.includes('/auth/login') ||
-          path.includes('/auth/password') ||
-          path.includes('/auth/users') ||
-          Object.keys(options.body).some((k) => k.toLowerCase().includes('password') || k === 'pin'));
-
-      if (isSensitive) {
+    } else if (options.body !== undefined && options.body !== null) {
+      if (typeof options.body === 'object') {
         try {
           const encrypted = await cifrarPayload(options.body as object);
           serializedBody = JSON.stringify(encrypted);
         } catch (err) {
-          console.warn('[CryptoRSA] Error al cifrar con RSA, enviando payload regular:', err);
+          console.warn('[CryptoRSA] Error al cifrar body con RSA, enviando payload regular:', err);
           serializedBody = JSON.stringify(options.body);
         }
       } else {
@@ -126,16 +118,26 @@ async function request<T>(
 
   // Si la respuesta incluye un token de datos cifrado opaco ($enc$tok:...),
   // se desempaqueta en memoria de manera transparente para alimentar la aplicación
-  // sin exponer los datos del usuario en texto plano en la red.
+  // sin exponer los datos del negocio en texto plano en la red (Response y Preview).
   if (
     payload &&
     typeof payload === 'object' &&
     typeof (payload as any).data === 'string' &&
     (payload as any).data.startsWith('$enc$tok:')
   ) {
-    const unpacked = unpackEncryptedToken<Record<string, unknown>>((payload as any).data);
-    if (unpacked && typeof unpacked === 'object') {
-      payload = { ...payload, ...unpacked };
+    const unpacked = unpackEncryptedToken<any>((payload as any).data);
+    if (unpacked !== null && unpacked !== undefined) {
+      if (Array.isArray(unpacked)) {
+        return unpacked as T;
+      }
+      if (typeof unpacked === 'object') {
+        const token = (payload as any).token ?? (unpacked as any).token;
+        if (token) {
+          return { ...(unpacked as object), token } as T;
+        }
+        return unpacked as T;
+      }
+      return unpacked as T;
     }
   }
 
