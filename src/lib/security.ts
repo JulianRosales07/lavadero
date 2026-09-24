@@ -46,13 +46,39 @@ export function caesarEncrypt(text: string, shift: number = DEFAULT_SHIFT): stri
 }
 
 /**
+ * Obtiene la clave pública activa del servidor o usa la predeterminada.
+ */
+async function fetchServerPublicKey(): Promise<string> {
+  try {
+    const apiUrl = import.meta.env.VITE_API_URL?.replace(/\/+$/, '') || '';
+    if (apiUrl && typeof window !== 'undefined') {
+      const res = await fetch(`${apiUrl}/api/security/public-key`, { cache: 'force-cache' });
+      if (res.ok) {
+        const data = await res.json();
+        if (data?.publicKey) return data.publicKey;
+      }
+    }
+  } catch {
+    // Usar la clave por defecto
+  }
+  return DEFAULT_PUBLIC_KEY_PEM;
+}
+
+/**
  * Convierte una clave PEM SPKI a CryptoKey importada para RSA-OAEP SHA-256.
  */
-async function getOrImportRsaKey(pem: string = DEFAULT_PUBLIC_KEY_PEM): Promise<CryptoKey | null> {
+async function getOrImportRsaKey(): Promise<CryptoKey | null> {
   if (cachedCryptoKey) return cachedCryptoKey;
 
   if (typeof window === 'undefined' || !window.crypto || !window.crypto.subtle) {
     return null;
+  }
+
+  let pem = DEFAULT_PUBLIC_KEY_PEM;
+  try {
+    pem = await fetchServerPublicKey();
+  } catch {
+    pem = DEFAULT_PUBLIC_KEY_PEM;
   }
 
   try {
