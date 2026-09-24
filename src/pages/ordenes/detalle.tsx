@@ -104,6 +104,22 @@ export default function OrderDetailPage() {
     }
   }, [isOperator, searchParams, order, id, navigate]);
 
+  // Para empleados, solo mostrar los servicios que le corresponden realizar a él
+  const visibleItems = React.useMemo(() => {
+    if (!order) return [];
+    if (!isOperator || !user?.employeeId) return order.items;
+    const filtered = order.items.filter(
+      (item) =>
+        item.employeeId === user.employeeId ||
+        (!item.employeeId && order.employeeId === user.employeeId),
+    );
+    return filtered.length > 0 ? filtered : order.items;
+  }, [order, isOperator, user?.employeeId]);
+
+  const operatorServicesTotal = React.useMemo(() => {
+    return visibleItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
+  }, [visibleItems]);
+
   if (isLoading) {
     return (
       <div className="space-y-6">
@@ -134,27 +150,6 @@ export default function OrderDetailPage() {
   const next = NEXT_STATUS[order.status];
   const initialEvidences = order.evidences.filter((item) => item.stage === 'INITIAL');
   const finalEvidences = order.evidences.filter((item) => item.stage === 'FINAL');
-
-  // Para empleados, solo mostrar los servicios que le corresponden realizar a él
-  const visibleItems = React.useMemo(() => {
-    if (!order) return [];
-    if (!isOperator || !user?.employeeId) return order.items;
-    const filtered = order.items.filter(
-      (item) =>
-        item.employeeId === user.employeeId ||
-        (!item.employeeId && order.employeeId === user.employeeId),
-    );
-    return filtered.length > 0 ? filtered : order.items;
-  }, [order, isOperator, user?.employeeId]);
-
-  const operatorServicesTotal = React.useMemo(() => {
-    return visibleItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
-  }, [visibleItems]);
-
-  const orderForView = React.useMemo(() => {
-    if (!order) return order;
-    return isOperator ? { ...order, items: visibleItems } : order;
-  }, [order, isOperator, visibleItems]);
 
   const onWhatsApp = () => {
     const phone = digitsOnly(order.customer.phone);
