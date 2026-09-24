@@ -189,11 +189,11 @@ export default function DashboardPage() {
         )}
       </section>
 
-      <div className="grid gap-6 xl:grid-cols-3">
+      <div className={cn('grid gap-6', isOperator ? 'grid-cols-1' : 'xl:grid-cols-3')}>
         {/* Estado de cada vehículo */}
-        <Card className="xl:col-span-2">
+        <Card className={cn(isOperator ? 'w-full' : 'xl:col-span-2')}>
           <CardHeader className="flex-row items-center justify-between">
-            <CardTitle>Estado de cada vehículo</CardTitle>
+            <CardTitle>{isOperator ? 'Mis vehículos asignados' : 'Estado de cada vehículo'}</CardTitle>
             <Button variant="ghost" size="sm" asChild>
               <Link to="/ordenes">Ver todas</Link>
             </Button>
@@ -209,14 +209,20 @@ export default function DashboardPage() {
               <EmptyState
                 icon={Car}
                 title="No hay vehículos en el lavadero"
-                description="Cuando registres una orden aparecerá aquí con su tiempo de espera."
+                description={
+                  isOperator
+                    ? 'No tienes vehículos pendientes asignados en este momento.'
+                    : 'Cuando registres una orden aparecerá aquí con su tiempo de espera.'
+                }
                 action={
-                  <Button asChild size="sm">
-                    <Link to="/ordenes/nueva">
-                      <Plus />
-                      Crear orden
-                    </Link>
-                  </Button>
+                  !isOperator ? (
+                    <Button asChild size="sm">
+                      <Link to="/ordenes/nueva">
+                        <Plus />
+                        Crear orden
+                      </Link>
+                    </Button>
+                  ) : undefined
                 }
               />
             ) : (
@@ -241,7 +247,7 @@ export default function DashboardPage() {
                           <p className="truncate text-xs text-muted-foreground">
                             {[vehicle.brand, vehicle.model].filter(Boolean).join(' ') || 'Vehículo'} ·{' '}
                             {fullName(vehicle.firstName, vehicle.lastName)}
-                            {vehicle.employeeName ? ` · ${vehicle.employeeName}` : ''}
+                            {vehicle.employeeName && !isOperator ? ` · ${vehicle.employeeName}` : ''}
                           </p>
                         </div>
 
@@ -268,72 +274,74 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
 
-        {/* Empleados trabajando */}
-        <Card>
-          <CardHeader className="flex-row items-center justify-between">
-            <CardTitle>Empleados trabajando</CardTitle>
-            <Button variant="ghost" size="sm" asChild>
-              <Link to="/empleados">Equipo</Link>
-            </Button>
-          </CardHeader>
-          <CardContent>
-            {isLoading ? (
-              <div className="space-y-3">
-                {[0, 1, 2].map((index) => (
-                  <Skeleton key={index} className="h-14 w-full" />
-                ))}
-              </div>
-            ) : (data?.workingEmployees.length ?? 0) === 0 ? (
-              <EmptyState
-                icon={Users}
-                title="Sin empleados registrados"
-                description="Registra a tu equipo para asignar responsables a cada orden."
-                action={
-                  <Button asChild size="sm" variant="outline">
-                    <Link to="/empleados">Registrar empleado</Link>
-                  </Button>
-                }
-              />
-            ) : (
-              <ul className="space-y-2">
-                {data?.workingEmployees.map((employee) => (
-                  <li
-                    key={employee.id}
-                    className="flex items-center gap-3 rounded-lg border border-border/60 p-3"
-                  >
-                    <span className="grid size-9 shrink-0 place-items-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
-                      {initials(employee.name)}
-                    </span>
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-medium">{employee.name}</p>
-                      <p className="truncate text-xs text-muted-foreground">{employee.position}</p>
-                    </div>
-                    <div className="shrink-0 text-right text-xs">
-                      <p className="font-medium">
-                        {employee.activeOrders > 0 ? (
-                          <span className="text-sky-600 dark:text-sky-400">
-                            {employee.activeOrders} activa{employee.activeOrders === 1 ? '' : 's'}
-                          </span>
-                        ) : (
-                          <span className="text-muted-foreground">Disponible</span>
-                        )}
-                      </p>
-                      <p className="text-muted-foreground">
-                        {employee.finishedToday} hoy · {money(employee.tipsToday)}
-                      </p>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </CardContent>
-        </Card>
+        {/* Empleados trabajando · Solo visible para Administradores */}
+        {!isOperator ? (
+          <Card>
+            <CardHeader className="flex-row items-center justify-between">
+              <CardTitle>Empleados trabajando</CardTitle>
+              <Button variant="ghost" size="sm" asChild>
+                <Link to="/empleados">Equipo</Link>
+              </Button>
+            </CardHeader>
+            <CardContent>
+              {isLoading ? (
+                <div className="space-y-3">
+                  {[0, 1, 2].map((index) => (
+                    <Skeleton key={index} className="h-14 w-full" />
+                  ))}
+                </div>
+              ) : (data?.workingEmployees.length ?? 0) === 0 ? (
+                <EmptyState
+                  icon={Users}
+                  title="Sin empleados registrados"
+                  description="Registra a tu equipo para asignar responsables a cada orden."
+                  action={
+                    <Button asChild size="sm" variant="outline">
+                      <Link to="/empleados">Registrar empleado</Link>
+                    </Button>
+                  }
+                />
+              ) : (
+                <ul className="space-y-2">
+                  {data?.workingEmployees.map((employee) => (
+                    <li
+                      key={employee.id}
+                      className="flex items-center gap-3 rounded-lg border border-border/60 p-3"
+                    >
+                      <span className="grid size-9 shrink-0 place-items-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
+                        {initials(employee.name)}
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-medium">{employee.name}</p>
+                        <p className="truncate text-xs text-muted-foreground">{employee.position}</p>
+                      </div>
+                      <div className="shrink-0 text-right text-xs">
+                        <p className="font-medium">
+                          {employee.activeOrders > 0 ? (
+                            <span className="text-sky-600 dark:text-sky-400">
+                              {employee.activeOrders} activa{employee.activeOrders === 1 ? '' : 's'}
+                            </span>
+                          ) : (
+                            <span className="text-muted-foreground">Disponible</span>
+                          )}
+                        </p>
+                        <p className="text-muted-foreground">
+                          {employee.finishedToday} hoy · {money(employee.tipsToday)}
+                        </p>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </CardContent>
+          </Card>
+        ) : null}
       </div>
 
       {/* Últimas órdenes */}
       <Card>
         <CardHeader className="flex-row items-center justify-between">
-          <CardTitle>Últimas órdenes</CardTitle>
+          <CardTitle>{isOperator ? 'Mis últimas órdenes' : 'Últimas órdenes'}</CardTitle>
           <Button variant="ghost" size="sm" asChild>
             <Link to="/ordenes">Ver historial</Link>
           </Button>
@@ -349,14 +357,20 @@ export default function DashboardPage() {
             <EmptyState
               icon={Car}
               title="Todavía no hay órdenes"
-              description="Crea la primera orden para empezar a registrar la operación."
+              description={
+                isOperator
+                  ? 'Aún no se registran órdenes asignadas a ti.'
+                  : 'Crea la primera orden para empezar a registrar la operación.'
+              }
               action={
-                <Button asChild size="sm">
-                  <Link to="/ordenes/nueva">
-                    <Plus />
-                    Nueva orden
-                  </Link>
-                </Button>
+                !isOperator ? (
+                  <Button asChild size="sm">
+                    <Link to="/ordenes/nueva">
+                      <Plus />
+                      Nueva orden
+                    </Link>
+                  </Button>
+                ) : undefined
               }
             />
           ) : (
@@ -365,10 +379,14 @@ export default function DashboardPage() {
                 <TableRow>
                   <TableHead>Orden</TableHead>
                   <TableHead>Cliente</TableHead>
-                  <TableHead className="hidden md:table-cell">Servicios</TableHead>
-                  <TableHead className="hidden lg:table-cell">Empleado</TableHead>
+                  <TableHead className="hidden md:table-cell">
+                    {isOperator ? 'Mi Servicio' : 'Servicios'}
+                  </TableHead>
+                  {!isOperator && <TableHead className="hidden lg:table-cell">Empleado</TableHead>}
                   <TableHead>Estado</TableHead>
-                  <TableHead className="text-right">Total</TableHead>
+                  <TableHead className="text-right">
+                    {isOperator ? 'Comisión (50%)' : 'Total'}
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -391,21 +409,38 @@ export default function DashboardPage() {
                         {order.services ?? '—'}
                       </p>
                     </TableCell>
-                    <TableCell className="hidden lg:table-cell">
-                      <span className="text-sm text-muted-foreground">
-                        {order.employeeName ?? 'Sin asignar'}
-                      </span>
-                    </TableCell>
+                    {!isOperator && (
+                      <TableCell className="hidden lg:table-cell">
+                        <span className="text-sm text-muted-foreground">
+                          {order.employeeName ?? 'Sin asignar'}
+                        </span>
+                      </TableCell>
+                    )}
                     <TableCell>
                       <StatusBadge status={order.status} />
                     </TableCell>
                     <TableCell className="text-right">
-                      <p className="font-medium tabular-nums">{money(order.total)}</p>
-                      {order.tip > 0 ? (
-                        <p className="text-xs text-muted-foreground">
-                          propina {money(order.tip)}
-                        </p>
-                      ) : null}
+                      {isOperator ? (
+                        <div>
+                          <p className="font-bold text-emerald-600 dark:text-emerald-400 tabular-nums">
+                            {money(Math.round(order.total * 0.5))}
+                          </p>
+                          {order.tip > 0 ? (
+                            <p className="text-[11px] text-muted-foreground">
+                              + propina {money(order.tip)}
+                            </p>
+                          ) : null}
+                        </div>
+                      ) : (
+                        <div>
+                          <p className="font-medium tabular-nums">{money(order.total)}</p>
+                          {order.tip > 0 ? (
+                            <p className="text-xs text-muted-foreground">
+                              propina {money(order.tip)}
+                            </p>
+                          ) : null}
+                        </div>
+                      )}
                     </TableCell>
                   </TableRow>
                 ))}

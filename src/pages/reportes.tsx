@@ -29,6 +29,14 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/components/auth-provider';
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { useEmployees } from '@/hooks/use-catalog';
+import {
   useCustomersReport,
   useEmployeeEarningsReport,
   useEmployeesReport,
@@ -681,12 +689,59 @@ function EmployeesTab({ range }: { range: RangeValue }) {
 }
 
 function EmployeeEarningsTab({ range, employeeId }: { range: RangeValue; employeeId?: string }) {
-  const { data, isLoading } = useEmployeeEarningsReport(range, employeeId);
+  const { user } = useAuth();
+  const isOperator = user?.role === 'OPERATOR';
+  const isAdmin = user?.role === 'ADMIN';
+  const { data: employees = [] } = useEmployees(true);
+
+  const [selectedEmpId, setSelectedEmpId] = React.useState<string | undefined>(
+    employeeId ?? (isOperator ? (user?.employeeId ?? undefined) : undefined),
+  );
+
+  React.useEffect(() => {
+    if (isAdmin && !selectedEmpId && employees.length > 0) {
+      setSelectedEmpId(employees[0].id);
+    }
+  }, [isAdmin, selectedEmpId, employees]);
+
+  const targetEmpId = isOperator ? (user?.employeeId ?? selectedEmpId ?? undefined) : selectedEmpId;
+  const { data, isLoading } = useEmployeeEarningsReport(range, targetEmpId || undefined);
   const summary = data?.summary;
   const items = data?.items ?? [];
+  const selectedEmp = employees.find((e) => e.id === targetEmpId);
 
   return (
     <div className="space-y-6">
+      {isAdmin && (
+        <Card className="p-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <p className="font-semibold text-sm">Empleado seleccionado</p>
+              <p className="text-xs text-muted-foreground">
+                Consulta los servicios realizados y comisiones (50%) de cada empleado.
+              </p>
+            </div>
+            <div className="w-full sm:w-72">
+              <Select
+                value={selectedEmpId ?? ''}
+                onValueChange={(val) => setSelectedEmpId(val)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Seleccionar empleado..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {employees.map((emp) => (
+                    <SelectItem key={emp.id} value={emp.id}>
+                      {emp.name} {emp.position ? `(${emp.position})` : ''}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </Card>
+      )}
+
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard
           label="Servicios realizados"
@@ -704,7 +759,7 @@ function EmployeeEarningsTab({ range, employeeId }: { range: RangeValue; employe
           loading={isLoading}
         />
         <StatCard
-          label="Mi Comisión (50%)"
+          label={isOperator ? "Mi Comisión (50%)" : `Comisión 50% (${selectedEmp?.name ?? 'Empleado'})`}
           value={money(summary?.commissionTotal)}
           icon={TrendingUp}
           tone="emerald"
@@ -712,7 +767,7 @@ function EmployeeEarningsTab({ range, employeeId }: { range: RangeValue; employe
           hint="50% del valor de cada servicio"
         />
         <StatCard
-          label="Total a cobrar"
+          label={isOperator ? "Total a cobrar" : "Total liquidación empleado"}
           value={money(summary?.payoutTotal)}
           icon={HandCoins}
           tone="amber"
@@ -723,7 +778,11 @@ function EmployeeEarningsTab({ range, employeeId }: { range: RangeValue; employe
 
       <Card>
         <CardHeader>
-          <CardTitle>Desglose de servicios y comisiones (50%)</CardTitle>
+          <CardTitle>
+            {isOperator
+              ? "Desglose de mis servicios y comisiones (50%)"
+              : `Desglose de servicios y comisiones - ${selectedEmp?.name ?? 'Empleado'}`}
+          </CardTitle>
         </CardHeader>
         <CardContent className="px-0 pb-0">
           {isLoading ? (
@@ -745,7 +804,7 @@ function EmployeeEarningsTab({ range, employeeId }: { range: RangeValue; employe
                   <TableHead className="text-center">Cant.</TableHead>
                   <TableHead className="text-right">Precio Servicio</TableHead>
                   <TableHead className="text-right font-bold text-emerald-600 dark:text-emerald-400">
-                    Mi Comisión (50%)
+                    {isOperator ? "Mi Comisión (50%)" : "Comisión Empleado (50%)"}
                   </TableHead>
                   <TableHead className="text-right text-muted-foreground">Empresa (50%)</TableHead>
                 </TableRow>

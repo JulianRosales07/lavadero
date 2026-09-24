@@ -76,16 +76,15 @@ export default function OrdersPage() {
       setPage(1);
     }, 300);
     return () => clearTimeout(timer);
-  }, [term, searchParams, setSearchParams]);
-
-  const orders = data?.data ?? [];
+  }, [term, searchParams, setSearchParams]);  const orders = data?.data ?? [];
   const totalPages = Math.max(1, Math.ceil((data?.total ?? 0) / (data?.pageSize ?? 25)));
+  const isOperator = user?.role === 'OPERATOR';
 
   return (
     <>
       <PageHeader
         title="Órdenes"
-        description="Historial y seguimiento de todas las órdenes de servicio."
+        description={isOperator ? "Tus órdenes y servicios de trabajo asignados." : "Historial y seguimiento de todas las órdenes de servicio."}
         actions={
           user?.role === 'ADMIN' ? (
             <Button className="hidden sm:inline-flex" onClick={() => navigate('/ordenes/nueva')}>
@@ -159,14 +158,16 @@ export default function OrdersPage() {
       {!isLoading && orders.length > 0 ? (
         <div className="flex flex-wrap items-center gap-x-6 gap-y-1 px-1 text-sm text-muted-foreground">
           <span>
-            <strong className="font-semibold text-foreground">{data?.total}</strong> órdenes
+            <strong className="font-semibold text-foreground">{data?.total}</strong> {isOperator ? 'órdenes asignadas' : 'órdenes'}
           </span>
-          <span>
-            Suma:{' '}
-            <strong className="font-semibold text-foreground tabular-nums">
-              {money(data?.totalAmount)}
-            </strong>
-          </span>
+          {!isOperator && (
+            <span>
+              Suma:{' '}
+              <strong className="font-semibold text-foreground tabular-nums">
+                {money(data?.totalAmount)}
+              </strong>
+            </span>
+          )}
         </div>
       ) : null}
 
@@ -184,7 +185,7 @@ export default function OrdersPage() {
             <EmptyState
               icon={ClipboardList}
               title="Sin órdenes para este filtro"
-              description="Cambia el estado o el rango de fechas, o crea una nueva orden."
+              description={isOperator ? "No tienes órdenes asignadas en este rango." : "Cambia el estado o el rango de fechas, o crea una nueva orden."}
               action={
                 user?.role === 'ADMIN' ? (
                   <Button size="sm" onClick={() => navigate('/ordenes/nueva')}>
@@ -198,65 +199,80 @@ export default function OrdersPage() {
             <>
               {/* Móvil: tarjetas en vez de tabla */}
               <ul className="divide-y divide-border/60 md:hidden">
-                {orders.map((order) => (
-                  <li key={order.id}>
-                    <Link
-                      to={`/ordenes/${order.id}`}
-                      className="flex items-start gap-3 px-4 py-3.5 transition-colors active:bg-accent/60"
-                    >
-                      <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-muted text-lg">
-                        {VEHICLE_TYPE_META[order.vehicleType].icon}
-                      </span>
+                {orders.map((order) => {
+                  const myItems = isOperator && user?.employeeId
+                    ? order.items.filter((item) => item.employeeId === user.employeeId || (!item.employeeId && order.employeeId === user.employeeId))
+                    : order.items;
+                  const myCommission = myItems.reduce(
+                    (acc, item) => acc + (item.price * item.quantity) * 0.5,
+                    0,
+                  );
 
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center justify-between gap-2">
-                          <span className="truncate font-semibold tracking-tight">
-                            {order.plate}
-                          </span>
-                          <span className="shrink-0 font-semibold tabular-nums">
-                            {money(order.total)}
-                          </span>
-                        </div>
+                  return (
+                    <li key={order.id}>
+                      <Link
+                        to={`/ordenes/${order.id}`}
+                        className="flex items-start gap-3 px-4 py-3.5 transition-colors active:bg-accent/60"
+                      >
+                        <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-muted text-lg">
+                          {VEHICLE_TYPE_META[order.vehicleType].icon}
+                        </span>
 
-                        <p className="truncate text-[13px] text-muted-foreground">
-                          {fullName(order.firstName, order.lastName)}
-                        </p>
-
-                        <p className="mt-0.5 truncate text-xs text-muted-foreground">
-                          {order.items.map((item) => item.name).join(', ')}
-                        </p>
-
-                        <div className="mt-2 flex flex-wrap items-center gap-2">
-                          <StatusBadge status={order.status} />
-                          <span className="text-[11px] text-muted-foreground">
-                            {formatSmart(order.checkInAt)}
-                          </span>
-                          {order.tip > 0 ? (
-                            <span className="text-[11px] text-muted-foreground">
-                              propina {money(order.tip)}
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="truncate font-semibold tracking-tight">
+                              {order.plate}
                             </span>
+                            <span className="shrink-0 font-semibold tabular-nums">
+                              {isOperator ? `${money(myCommission)}` : money(order.total)}
+                            </span>
+                          </div>
+
+                          <p className="truncate text-[13px] text-muted-foreground">
+                            {fullName(order.firstName, order.lastName)}
+                          </p>
+
+                          <p className="mt-0.5 truncate text-xs text-muted-foreground">
+                            {myItems.map((item) => item.name).join(', ') || 'Sin servicios asignados'}
+                          </p>
+
+                          <div className="mt-2 flex flex-wrap items-center gap-2">
+                            <StatusBadge status={order.status} />
+                            <span className="text-[11px] text-muted-foreground">
+                              {formatSmart(order.checkInAt)}
+                            </span>
+                            {!isOperator && order.tip > 0 ? (
+                              <span className="text-[11px] text-muted-foreground">
+                                propina {money(order.tip)}
+                              </span>
+                            ) : null}
+                            {isOperator && (
+                              <span className="text-[11px] font-medium text-emerald-600">
+                                Comisión 50%
+                              </span>
+                            )}
+                          </div>
+
+                          {!isOperator && (order.status === 'READY' || order.status === 'IN_PROGRESS') ? (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="mt-2.5 w-full"
+                              onClick={(event) => {
+                                event.preventDefault();
+                                event.stopPropagation();
+                                navigate(`/ordenes/${order.id}?cobrar=1`);
+                              }}
+                            >
+                              <Banknote />
+                              Cobrar {money(order.total)}
+                            </Button>
                           ) : null}
                         </div>
-
-                        {order.status === 'READY' || order.status === 'IN_PROGRESS' ? (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="mt-2.5 w-full"
-                            onClick={(event) => {
-                              event.preventDefault();
-                              event.stopPropagation();
-                              navigate(`/ordenes/${order.id}?cobrar=1`);
-                            }}
-                          >
-                            <Banknote />
-                            Cobrar {money(order.total)}
-                          </Button>
-                        ) : null}
-                      </div>
-                    </Link>
-                  </li>
-                ))}
+                      </Link>
+                    </li>
+                  );
+                })}
               </ul>
 
               {/* Escritorio: tabla */}
@@ -266,100 +282,113 @@ export default function OrdersPage() {
                     <TableRow>
                       <TableHead>Orden</TableHead>
                       <TableHead>Cliente</TableHead>
-                      <TableHead className="hidden md:table-cell">Servicios</TableHead>
-                      <TableHead className="hidden xl:table-cell">Empleado</TableHead>
+                      <TableHead className="hidden md:table-cell">{isOperator ? 'Mis Servicios' : 'Servicios'}</TableHead>
+                      {!isOperator && <TableHead className="hidden xl:table-cell">Empleado</TableHead>}
                       <TableHead className="hidden sm:table-cell">Ingreso</TableHead>
                       <TableHead>Estado</TableHead>
-                      <TableHead className="text-right">Total</TableHead>
-                      <TableHead className="w-[110px]" />
+                      <TableHead className="text-right">{isOperator ? 'Mi Comisión' : 'Total'}</TableHead>
+                      {!isOperator && <TableHead className="w-[110px]" />}
                     </TableRow>
                   </TableHeader>
-              <TableBody>
-                {orders.map((order) => {
-                  const services = order.items.map((item) =>
-                    item.quantity > 1 ? `${item.name} ×${item.quantity}` : item.name,
-                  );
+                  <TableBody>
+                    {orders.map((order) => {
+                      const myItems = isOperator && user?.employeeId
+                        ? order.items.filter((item) => item.employeeId === user.employeeId || (!item.employeeId && order.employeeId === user.employeeId))
+                        : order.items;
+                      const services = myItems.map((item) =>
+                        item.quantity > 1 ? `${item.name} ×${item.quantity}` : item.name,
+                      );
+                      const myCommission = myItems.reduce(
+                        (acc, item) => acc + (item.price * item.quantity) * 0.5,
+                        0,
+                      );
 
-                  return (
-                    <TableRow
-                      key={order.id}
-                      className="cursor-pointer"
-                      onClick={() => navigate(`/ordenes/${order.id}`)}
-                    >
-                      <TableCell>
-                        <div className="flex items-center gap-2.5">
-                          <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-muted text-base">
-                            {VEHICLE_TYPE_META[order.vehicleType].icon}
-                          </span>
-                          <div>
-                            <p className="font-semibold tracking-tight">{order.plate}</p>
-                            <p className="font-mono text-xs text-muted-foreground">{order.number}</p>
-                          </div>
-                        </div>
-                      </TableCell>
+                      return (
+                        <TableRow
+                          key={order.id}
+                          className="cursor-pointer"
+                          onClick={() => navigate(`/ordenes/${order.id}`)}
+                        >
+                          <TableCell>
+                            <div className="flex items-center gap-2.5">
+                              <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-muted text-base">
+                                {VEHICLE_TYPE_META[order.vehicleType].icon}
+                              </span>
+                              <div>
+                                <p className="font-semibold tracking-tight">{order.plate}</p>
+                                <p className="font-mono text-xs text-muted-foreground">{order.number}</p>
+                              </div>
+                            </div>
+                          </TableCell>
 
-                      <TableCell>
-                        <p className="text-sm">{fullName(order.firstName, order.lastName)}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {[order.brand, order.model].filter(Boolean).join(' ') || '—'}
-                        </p>
-                      </TableCell>
+                          <TableCell>
+                            <p className="text-sm">{fullName(order.firstName, order.lastName)}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {[order.brand, order.model].filter(Boolean).join(' ') || '—'}
+                            </p>
+                          </TableCell>
 
-                      <TableCell className="hidden max-w-[16rem] md:table-cell">
-                        <p className="truncate text-sm text-muted-foreground">
-                          {services.join(', ')}
-                        </p>
-                        {order.estimatedMin > 0 ? (
-                          <p className="flex items-center gap-1 text-xs text-muted-foreground">
-                            <Clock className="size-3" aria-hidden />
-                            {formatMinutes(order.estimatedMin)}
-                          </p>
-                        ) : null}
-                      </TableCell>
+                          <TableCell className="hidden max-w-[16rem] md:table-cell">
+                            <p className="truncate text-sm text-muted-foreground">
+                              {services.join(', ') || 'Sin servicios asignados'}
+                            </p>
+                            {order.estimatedMin > 0 ? (
+                              <p className="flex items-center gap-1 text-xs text-muted-foreground">
+                                <Clock className="size-3" aria-hidden />
+                                {formatMinutes(order.estimatedMin)}
+                              </p>
+                            ) : null}
+                          </TableCell>
 
-                      <TableCell className="hidden xl:table-cell">
-                        <span className="text-sm text-muted-foreground">
-                          {order.employeeName ?? 'Sin asignar'}
-                        </span>
-                      </TableCell>
+                          {!isOperator && (
+                            <TableCell className="hidden xl:table-cell">
+                              <span className="text-sm text-muted-foreground">
+                                {order.employeeName ?? 'Sin asignar'}
+                              </span>
+                            </TableCell>
+                          )}
 
-                      <TableCell className="hidden sm:table-cell">
-                        <span className="text-sm text-muted-foreground">
-                          {formatSmart(order.checkInAt)}
-                        </span>
-                      </TableCell>
+                          <TableCell className="hidden sm:table-cell">
+                            <span className="text-sm text-muted-foreground">
+                              {formatSmart(order.checkInAt)}
+                            </span>
+                          </TableCell>
 
-                      <TableCell>
-                        <StatusBadge status={order.status} />
-                      </TableCell>
+                          <TableCell>
+                            <StatusBadge status={order.status} />
+                          </TableCell>
 
-                      <TableCell className="text-right">
-                        <p className="font-medium tabular-nums">{money(order.total)}</p>
-                        {order.tip > 0 ? (
-                          <p className="text-xs text-muted-foreground">
-                            +{money(order.tip)} propina
-                          </p>
-                        ) : null}
-                      </TableCell>
+                          <TableCell className="text-right">
+                            <p className="font-medium tabular-nums">
+                              {isOperator ? money(myCommission) : money(order.total)}
+                            </p>
+                            {!isOperator && order.tip > 0 ? (
+                              <p className="text-xs text-muted-foreground">
+                                +{money(order.tip)} propina
+                              </p>
+                            ) : null}
+                          </TableCell>
 
-                      <TableCell>
-                        {order.status === 'READY' || order.status === 'IN_PROGRESS' ? (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={(event) => {
-                              event.stopPropagation();
-                              navigate(`/ordenes/${order.id}?cobrar=1`);
-                            }}
-                          >
-                            <Banknote />
-                            Cobrar
-                          </Button>
-                        ) : null}
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
+                          {!isOperator && (
+                            <TableCell>
+                              {order.status === 'READY' || order.status === 'IN_PROGRESS' ? (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={(event) => {
+                                    event.stopPropagation();
+                                    navigate(`/ordenes/${order.id}?cobrar=1`);
+                                  }}
+                                >
+                                  <Banknote />
+                                  Cobrar
+                                </Button>
+                              ) : null}
+                            </TableCell>
+                          )}
+                        </TableRow>
+                      );
+                    })}
                   </TableBody>
                 </Table>
               </div>

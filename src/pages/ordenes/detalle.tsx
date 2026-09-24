@@ -135,6 +135,27 @@ export default function OrderDetailPage() {
   const initialEvidences = order.evidences.filter((item) => item.stage === 'INITIAL');
   const finalEvidences = order.evidences.filter((item) => item.stage === 'FINAL');
 
+  // Para empleados, solo mostrar los servicios que le corresponden realizar a él
+  const visibleItems = React.useMemo(() => {
+    if (!order) return [];
+    if (!isOperator || !user?.employeeId) return order.items;
+    const filtered = order.items.filter(
+      (item) =>
+        item.employeeId === user.employeeId ||
+        (!item.employeeId && order.employeeId === user.employeeId),
+    );
+    return filtered.length > 0 ? filtered : order.items;
+  }, [order, isOperator, user?.employeeId]);
+
+  const operatorServicesTotal = React.useMemo(() => {
+    return visibleItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
+  }, [visibleItems]);
+
+  const orderForView = React.useMemo(() => {
+    if (!order) return order;
+    return isOperator ? { ...order, items: visibleItems } : order;
+  }, [order, isOperator, visibleItems]);
+
   const onWhatsApp = () => {
     const phone = digitsOnly(order.customer.phone);
     if (!phone) {
@@ -257,8 +278,15 @@ export default function OrderDetailPage() {
           {/* Servicios */}
           <Card>
             <CardHeader className="flex-row items-center justify-between">
-              <CardTitle>Servicios</CardTitle>
-              {editable ? (
+              <div className="flex items-center gap-2">
+                <CardTitle>{isOperator ? 'Mis Servicios a Realizar' : 'Servicios'}</CardTitle>
+                {isOperator && visibleItems.length < order.items.length ? (
+                  <Badge variant="muted" className="text-xs">
+                    Tu tarea ({visibleItems.length} de {order.items.length} servicios)
+                  </Badge>
+                ) : null}
+              </div>
+              {editable && !isOperator ? (
                 <Button variant="ghost" size="sm" onClick={() => setAddServicesOpen(true)}>
                   <Plus />
                   Agregar
@@ -267,7 +295,7 @@ export default function OrderDetailPage() {
             </CardHeader>
             <CardContent>
               <ul className="divide-y divide-border/60">
-                {order.items.map((item) => (
+                {visibleItems.map((item) => (
                   <li key={item.id} className="flex items-center gap-3 py-3 first:pt-0">
                     <div className="min-w-0 flex-1">
                       <p className="font-medium">
@@ -290,9 +318,16 @@ export default function OrderDetailPage() {
                       </p>
                     </div>
 
-                    <span className="shrink-0 font-medium tabular-nums">
-                      {money(item.price * item.quantity)}
-                    </span>
+                    <div className="shrink-0 text-right">
+                      <span className="font-medium tabular-nums block">
+                        {money(item.price * item.quantity)}
+                      </span>
+                      {isOperator ? (
+                        <span className="text-xs text-emerald-600 dark:text-emerald-400 font-semibold block">
+                          Comisión: {money(Math.round(item.price * item.quantity * 0.5))}
+                        </span>
+                      ) : null}
+                    </div>
 
                     {editable && !isOperator && order.items.length > 1 ? (
                       <Button
@@ -401,7 +436,7 @@ export default function OrderDetailPage() {
             </CardContent>
           </Card>
 
-          {order.status === 'FINISHED' ? (
+          {order.status === 'FINISHED' && !isOperator ? (
             <ElectronicInvoiceCard orderId={order.id} customerId={order.customer.id} />
           ) : null}
 
@@ -410,65 +445,102 @@ export default function OrderDetailPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Receipt className="size-4 text-muted-foreground" aria-hidden />
-                Importes
+                {isOperator ? 'Mis Importes' : 'Importes'}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              <dl className="space-y-1.5 text-sm">
-                <Row label="Subtotal" value={money(order.subtotal)} />
-                {order.discountTotal > 0 ? (
-                  <Row
-                    label={`Descuento${order.discountType === 'PERCENT' ? ` (${order.discountValue}%)` : ''}`}
-                    value={`- ${money(order.discountTotal)}`}
-                    className="text-destructive"
-                  />
-                ) : null}
-                {order.promotionTotal > 0 ? (
-                  <Row
-                    label={`Promoción · ${order.promotion?.name ?? ''}`}
-                    value={`- ${money(order.promotionTotal)}`}
-                    className="text-destructive"
-                  />
-                ) : null}
-                {order.tip > 0 ? <Row label="Propina" value={money(order.tip)} /> : null}
-                <Row
-                  label="Tiempo estimado"
-                  value={formatMinutes(order.estimatedMin)}
-                  className="text-muted-foreground"
-                />
-              </dl>
-
-              <Separator />
-
-              <div className="flex items-baseline justify-between">
-                <span className="font-medium">Total</span>
-                <span className="text-2xl font-semibold tabular-nums">
-                  {money(order.total)}
-                </span>
-              </div>
-
-              {order.payments.length > 0 ? (
-                <>
-                  <Separator />
-                  <div className="space-y-1.5 text-sm">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                      Pagos registrados
-                    </p>
-                    {order.payments.map((payment) => (
+              {isOperator ? (
+                <div className="space-y-3">
+                  <dl className="space-y-1.5 text-sm">
+                    <Row label="Mis servicios asignados" value={money(operatorServicesTotal)} />
+                    <Row
+                      label="Tiempo estimado"
+                      value={formatMinutes(
+                        visibleItems.reduce((acc, i) => acc + i.durationMin * i.quantity, 0),
+                      )}
+                      className="text-muted-foreground"
+                    />
+                    {order.tip > 0 && order.employeeId === user?.employeeId ? (
                       <Row
-                        key={payment.id}
-                        label={PAYMENT_METHOD_META[payment.method].label}
-                        value={money(payment.amount)}
+                        label="Propina asignada"
+                        value={money(order.tip)}
+                        className="text-amber-600"
                       />
-                    ))}
-                    {order.finishedAt ? (
-                      <p className="pt-1 text-xs text-muted-foreground">
-                        Cobrada {formatDateTime(order.finishedAt)}
-                      </p>
                     ) : null}
+                  </dl>
+                  <Separator />
+                  <div className="flex items-baseline justify-between">
+                    <div>
+                      <span className="font-medium">Mi Ganancia (50%)</span>
+                      <p className="text-xs text-muted-foreground">Comisión por tus servicios</p>
+                    </div>
+                    <span className="text-2xl font-bold text-emerald-600 dark:text-emerald-400 tabular-nums">
+                      {money(
+                        Math.round(operatorServicesTotal * 0.5) +
+                          (order.tip > 0 && order.employeeId === user?.employeeId ? order.tip : 0),
+                      )}
+                    </span>
                   </div>
+                </div>
+              ) : (
+                <>
+                  <dl className="space-y-1.5 text-sm">
+                    <Row label="Subtotal" value={money(order.subtotal)} />
+                    {order.discountTotal > 0 ? (
+                      <Row
+                        label={`Descuento${order.discountType === 'PERCENT' ? ` (${order.discountValue}%)` : ''}`}
+                        value={`- ${money(order.discountTotal)}`}
+                        className="text-destructive"
+                      />
+                    ) : null}
+                    {order.promotionTotal > 0 ? (
+                      <Row
+                        label={`Promoción · ${order.promotion?.name ?? ''}`}
+                        value={`- ${money(order.promotionTotal)}`}
+                        className="text-destructive"
+                      />
+                    ) : null}
+                    {order.tip > 0 ? <Row label="Propina" value={money(order.tip)} /> : null}
+                    <Row
+                      label="Tiempo estimado"
+                      value={formatMinutes(order.estimatedMin)}
+                      className="text-muted-foreground"
+                    />
+                  </dl>
+
+                  <Separator />
+
+                  <div className="flex items-baseline justify-between">
+                    <span className="font-medium">Total</span>
+                    <span className="text-2xl font-semibold tabular-nums">
+                      {money(order.total)}
+                    </span>
+                  </div>
+
+                  {order.payments.length > 0 ? (
+                    <>
+                      <Separator />
+                      <div className="space-y-1.5 text-sm">
+                        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                          Pagos registrados
+                        </p>
+                        {order.payments.map((payment) => (
+                          <Row
+                            key={payment.id}
+                            label={PAYMENT_METHOD_META[payment.method].label}
+                            value={money(payment.amount)}
+                          />
+                        ))}
+                        {order.finishedAt ? (
+                          <p className="pt-1 text-xs text-muted-foreground">
+                            Cobrada {formatDateTime(order.finishedAt)}
+                          </p>
+                        ) : null}
+                      </div>
+                    </>
+                  ) : null}
                 </>
-              ) : null}
+              )}
             </CardContent>
           </Card>
 
@@ -482,7 +554,7 @@ export default function OrderDetailPage() {
                 <Label htmlFor="order-employee">Empleado responsable</Label>
                 <Select
                   value={order.employeeId ?? NONE}
-                  disabled={!editable || updateOrder.isPending}
+                  disabled={!editable || isOperator || updateOrder.isPending}
                   onValueChange={(value) =>
                     void updateOrder.mutateAsync({
                       id: order.id,
@@ -536,7 +608,7 @@ export default function OrderDetailPage() {
           }
         }}
       />
-      <TicketDialog order={order} open={ticketOpen} onOpenChange={setTicketOpen} />
+      <TicketDialog order={orderForView} open={ticketOpen} onOpenChange={setTicketOpen} />
       <AddServicesDialog order={order} open={addServicesOpen} onOpenChange={setAddServicesOpen} />
 
       <ConfirmDialog

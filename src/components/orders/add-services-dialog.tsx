@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import * as React from 'react';
 import { Plus } from 'lucide-react';
@@ -46,16 +46,20 @@ export function AddServicesDialog({
       return;
     }
 
-    await addItems.mutateAsync({
-      id: order.id,
-      items: services.map((service) => ({
-        serviceId: service.serviceId,
-        quantity: service.quantity,
-        employeeId: order.employeeId,
-      })),
-    });
+    try {
+      await addItems.mutateAsync({
+        id: order.id,
+        items: services.map((service) => ({
+          serviceId: service.serviceId,
+          quantity: service.quantity,
+          employeeId: service.employeeId ?? order.employeeId ?? null,
+        })),
+      });
 
-    onOpenChange(false);
+      onOpenChange(false);
+    } catch {
+      // Error manejado en el hook useAddOrderItems
+    }
   };
 
   return (

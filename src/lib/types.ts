@@ -316,7 +316,7 @@ export interface OrderListItem {
   photoUrl: string | null;
   employeeId: string | null;
   employeeName: string | null;
-  items: { id: string; name: string; price: number; quantity: number }[];
+  items: { id: string; name: string; price: number; quantity: number; employeeId?: string | null }[];
   evidencesCount: number;
 }
 
