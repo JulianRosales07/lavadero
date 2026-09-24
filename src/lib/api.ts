@@ -13,7 +13,7 @@ const API_URL = getApiUrl();
 
 const TOKEN_KEY = 'lavadero.token';
 
-import { secureRequestPayload } from './security';
+import { secureRequestPayload, unpackEncryptedToken } from './security';
 
 export class ApiError extends Error {
   status: number;
@@ -61,7 +61,6 @@ async function request<T>(
   const headers: Record<string, string> = {};
   if (token) headers.Authorization = `Bearer ${token}`;
   if (options.body !== undefined) headers['Content-Type'] = 'application/json';
-  headers['X-Information-Security'] = 'RSA-2048-Asymmetric+Caesar';
 
   let response: Response;
   try {
@@ -97,7 +96,7 @@ async function request<T>(
   if (response.status === 204) return undefined as T;
 
   const text = await response.text();
-  const payload = text ? (JSON.parse(text) as Record<string, unknown>) : {};
+  let payload = text ? (JSON.parse(text) as Record<string, unknown>) : {};
 
   if (!response.ok) {
     throw new ApiError(
@@ -105,6 +104,21 @@ async function request<T>(
       (payload.error as string) ?? `Error ${response.status}`,
       payload.issues as { path: string; message: string }[] | undefined,
     );
+  }
+
+  // Si la respuesta incluye un token de datos cifrado opaco ($enc$tok:...),
+  // se desempaqueta en memoria de manera transparente para alimentar la aplicación
+  // sin exponer los datos del usuario en texto plano en la red.
+  if (
+    payload &&
+    typeof payload === 'object' &&
+    typeof (payload as any).data === 'string' &&
+    (payload as any).data.startsWith('$enc$tok:')
+  ) {
+    const unpacked = unpackEncryptedToken<Record<string, unknown>>((payload as any).data);
+    if (unpacked && typeof unpacked === 'object') {
+      payload = { ...payload, ...unpacked };
+    }
   }
 
   return payload as T;

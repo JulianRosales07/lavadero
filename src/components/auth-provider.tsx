@@ -4,6 +4,7 @@ import * as React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { api, tokenStore } from '@/lib/api';
+import { unpackEncryptedToken } from '@/lib/security';
 import type { AuthUser } from '@/lib/types';
 
 interface AuthContextValue {
@@ -33,8 +34,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return;
     }
     try {
-      const { user: me } = await api.get<{ user: AuthUser }>('/api/auth/me');
-      setUser(me);
+      const res = await api.get<{ user?: AuthUser; data?: string }>('/api/auth/me');
+      const me = res.user || (res.data ? unpackEncryptedToken<{ user: AuthUser }>(res.data)?.user : null);
+      setUser(me ?? null);
     } catch {
       tokenStore.clear();
       setUser(null);
@@ -48,13 +50,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [refresh]);
 
   const login = React.useCallback(async (email: string, password: string) => {
-    const result = await api.post<{ token: string; user: AuthUser }>('/api/auth/login', {
+    const result = await api.post<{ token: string; user?: AuthUser; data?: string }>('/api/auth/login', {
       email,
       password,
     });
     tokenStore.set(result.token);
-    setUser(result.user);
-    return result.user;
+    const loggedUser =
+      result.user ||
+      (result.data ? unpackEncryptedToken<{ user: AuthUser }>(result.data)?.user : null);
+    setUser(loggedUser ?? null);
+    return loggedUser as AuthUser;
   }, []);
 
   const logout = React.useCallback(() => {

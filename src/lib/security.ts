@@ -46,6 +46,54 @@ export function caesarEncrypt(text: string, shift: number = DEFAULT_SHIFT): stri
 }
 
 /**
+ * Descifrado César sobre cadenas de texto (rango imprimible ASCII 32-126).
+ */
+export function caesarDecrypt(text: string, shift: number = DEFAULT_SHIFT): string {
+  if (!text) return '';
+  const normalizedShift = ((shift % 95) + 95) % 95;
+  return text
+    .split('')
+    .map((char) => {
+      const code = char.charCodeAt(0);
+      if (code >= 32 && code <= 126) {
+        return String.fromCharCode(((code - 32 - normalizedShift + 95) % 95) + 32);
+      }
+      return char;
+    })
+    .join('');
+}
+
+/**
+ * Desempaqueta y descifra un token cifrado opaco ($enc$tok:7:<base64url>)
+ * generado por el servidor, sin exponer datos del usuario ni nombres de algoritmos en la red.
+ */
+export function unpackEncryptedToken<T = any>(tokenStr: string): T | null {
+  if (!tokenStr || typeof tokenStr !== 'string') return null;
+  if (!tokenStr.startsWith('$enc$tok:')) return null;
+
+  try {
+    const parts = tokenStr.slice('$enc$tok:'.length).split(':');
+    const shift = parts.length >= 2 ? parseInt(parts[0], 10) : DEFAULT_SHIFT;
+    let b64 = parts.length >= 2 ? parts[1] : parts[0];
+    b64 = b64.replace(/-/g, '+').replace(/_/g, '/');
+    while (b64.length % 4) {
+      b64 += '=';
+    }
+    const binaryStr = window.atob(b64);
+    const bytes = new Uint8Array(binaryStr.length);
+    for (let i = 0; i < binaryStr.length; i++) {
+      bytes[i] = binaryStr.charCodeAt(i);
+    }
+    const caesarText = new TextDecoder().decode(bytes);
+    const jsonStr = caesarDecrypt(caesarText, isNaN(shift) ? DEFAULT_SHIFT : shift);
+    return JSON.parse(jsonStr) as T;
+  } catch (err) {
+    console.warn('[Security] unpackEncryptedToken failed:', err);
+    return null;
+  }
+}
+
+/**
  * Obtiene la clave pública activa del servidor o usa la predeterminada.
  */
 async function fetchServerPublicKey(): Promise<string> {
@@ -177,15 +225,6 @@ export async function secureRequestPayload<T>(body: T): Promise<T> {
     } else if (value && typeof value === 'object' && !(value instanceof File) && !(value instanceof Blob)) {
       clone[key] = await secureRequestPayload(value);
     }
-  }
-
-  // Añadir metadatos de seguridad si se cifró información sensible
-  if (hasEncrypted && !clone._security) {
-    clone._security = {
-      algorithm: 'RSA-2048-Asymmetric',
-      cipher: 'Caesar-Substitution (Shift 7) + RSA-OAEP-SHA256',
-      encryptedAt: new Date().toISOString(),
-    };
   }
 
   return clone as T;
