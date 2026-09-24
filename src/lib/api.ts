@@ -13,6 +13,8 @@ const API_URL = getApiUrl();
 
 const TOKEN_KEY = 'lavadero.token';
 
+import { secureRequestPayload } from './security';
+
 export class ApiError extends Error {
   status: number;
   issues?: { path: string; message: string }[];
@@ -63,10 +65,18 @@ async function request<T>(
 
   let response: Response;
   try {
+    let serializedBody: string | FormData | undefined;
+    if (options.formData) {
+      serializedBody = options.formData;
+    } else if (options.body !== undefined) {
+      const securedBody = await secureRequestPayload(options.body);
+      serializedBody = JSON.stringify(securedBody);
+    }
+
     response = await fetch(buildUrl(path, options.query), {
       method,
       headers,
-      body: options.formData ?? (options.body !== undefined ? JSON.stringify(options.body) : undefined),
+      body: serializedBody,
       cache: 'no-store',
     });
   } catch {
