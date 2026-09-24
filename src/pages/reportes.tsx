@@ -48,7 +48,7 @@ import {
 import { PAYMENT_METHOD_META, VEHICLE_TYPE_META } from '@/lib/constants';
 import { formatDate, formatMinutes, formatSmart, money, percent } from '@/lib/format';
 import type { PaymentMethod, VehicleType } from '@/lib/types';
-import { fullName } from '@/lib/utils';
+import { cn, fullName } from '@/lib/utils';
 import {
   SalesTrendChart,
   TopServicesChart,
@@ -742,7 +742,7 @@ function EmployeeEarningsTab({ range, employeeId }: { range: RangeValue; employe
         </Card>
       )}
 
-      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <section className={cn("grid gap-4 sm:grid-cols-2", isOperator ? "xl:grid-cols-3" : "xl:grid-cols-4")}>
         <StatCard
           label="Servicios realizados"
           value={summary?.servicesCount ?? 0}
@@ -751,13 +751,15 @@ function EmployeeEarningsTab({ range, employeeId }: { range: RangeValue; employe
           loading={isLoading}
           hint={`${summary?.ordersCount ?? 0} órdenes atendidas`}
         />
-        <StatCard
-          label="Valor total servicios"
-          value={money(summary?.servicesTotal)}
-          icon={CircleDollarSign}
-          tone="primary"
-          loading={isLoading}
-        />
+        {!isOperator && (
+          <StatCard
+            label="Valor total servicios"
+            value={money(summary?.servicesTotal)}
+            icon={CircleDollarSign}
+            tone="primary"
+            loading={isLoading}
+          />
+        )}
         <StatCard
           label={isOperator ? "Mi Comisión (50%)" : `Comisión 50% (${selectedEmp?.name ?? 'Empleado'})`}
           value={money(summary?.commissionTotal)}
@@ -802,11 +804,11 @@ function EmployeeEarningsTab({ range, employeeId }: { range: RangeValue; employe
                   <TableHead>Placa</TableHead>
                   <TableHead>Servicio</TableHead>
                   <TableHead className="text-center">Cant.</TableHead>
-                  <TableHead className="text-right">Precio Servicio</TableHead>
+                  {!isOperator && <TableHead className="text-right">Precio Servicio</TableHead>}
                   <TableHead className="text-right font-bold text-emerald-600 dark:text-emerald-400">
                     {isOperator ? "Mi Comisión (50%)" : "Comisión Empleado (50%)"}
                   </TableHead>
-                  <TableHead className="text-right text-muted-foreground">Empresa (50%)</TableHead>
+                  {!isOperator && <TableHead className="text-right text-muted-foreground">Empresa (50%)</TableHead>}
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -819,13 +821,17 @@ function EmployeeEarningsTab({ range, employeeId }: { range: RangeValue; employe
                     <TableCell className="font-semibold">{item.vehiclePlate}</TableCell>
                     <TableCell className="font-medium">{item.serviceName}</TableCell>
                     <TableCell className="text-center tabular-nums">{item.quantity}</TableCell>
-                    <TableCell className="text-right tabular-nums">{money(item.totalPrice)}</TableCell>
+                    {!isOperator && (
+                      <TableCell className="text-right tabular-nums">{money(item.totalPrice)}</TableCell>
+                    )}
                     <TableCell className="text-right font-bold tabular-nums text-emerald-600 dark:text-emerald-400">
                       {money(item.commission)}
                     </TableCell>
-                    <TableCell className="text-right text-muted-foreground tabular-nums">
-                      {money(item.companyShare)}
-                    </TableCell>
+                    {!isOperator && (
+                      <TableCell className="text-right text-muted-foreground tabular-nums">
+                        {money(item.companyShare)}
+                      </TableCell>
+                    )}
                   </TableRow>
                 ))}
               </TableBody>

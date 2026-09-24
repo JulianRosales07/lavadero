@@ -59,6 +59,7 @@ async function request<T>(
   const headers: Record<string, string> = {};
   if (token) headers.Authorization = `Bearer ${token}`;
   if (options.body !== undefined) headers['Content-Type'] = 'application/json';
+  headers['X-Information-Security'] = 'RSA-2048-Asymmetric+Caesar';
 
   let response: Response;
   try {

@@ -13,6 +13,15 @@ export type PaymentMethod = 'CASH' | 'CARD' | 'TRANSFER' | 'YAPE' | 'PLIN';
 export type ExpenseCategory = 'SUPPLIES' | 'SALARY' | 'SERVICES' | 'MAINTENANCE' | 'OTHER';
 export type RangePreset = 'today' | 'week' | 'month' | 'year' | 'custom';
 
+export interface SecuritySeal {
+  algorithm: string;
+  cipher: string;
+  rsaKeyFingerprint: string;
+  publicKey?: string;
+  seal: string;
+  protectedPages?: string[];
+}
+
 export interface AuthUser {
   id: string;
   name: string;
@@ -23,6 +32,7 @@ export interface AuthUser {
   employeeId: string | null;
   businessId: string | null;
   businessName?: string | null;
+  security?: SecuritySeal;
 }
 
 export interface SuperAdminStats {

@@ -5,6 +5,7 @@ import {
   Ban,
   Banknote,
   Camera,
+  CheckCircle2,
   Clock,
   Copy,
   ExternalLink,
@@ -17,6 +18,7 @@ import {
   Receipt,
   Trash2,
   UserRound,
+  Users,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/components/auth-provider';
@@ -120,6 +122,29 @@ export default function OrderDetailPage() {
     return visibleItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
   }, [visibleItems]);
 
+  const assignedEmployeeIds = React.useMemo(() => {
+    if (!order) return [];
+    return Array.from(
+      new Set(order.items.map((i) => i.employeeId || order.employeeId).filter(Boolean)),
+    ) as string[];
+  }, [order]);
+
+  const isMultiEmployee = assignedEmployeeIds.length > 1;
+
+  const finishedEmployeeIds = React.useMemo(() => {
+    if (!order?.events) return [];
+    return order.events
+      .map((e) => e.message?.match(/\[EMPLEADO_LISTO:([a-f0-9-]+)\]/i)?.[1])
+      .filter((id): id is string => Boolean(id));
+  }, [order?.events]);
+
+  const myEmployeeId = user?.employeeId;
+  const hasMyPartFinished = Boolean(
+    myEmployeeId && finishedEmployeeIds.includes(myEmployeeId),
+  );
+  const allEmployeesFinished =
+    !isMultiEmployee || assignedEmployeeIds.every((id) => finishedEmployeeIds.includes(id));
+
   if (isLoading) {
     return (
       <div className="space-y-6">
@@ -195,7 +220,40 @@ export default function OrderDetailPage() {
                     <span>Servicio</span>
                   </Button>
                 )}
-                {next ? (
+                {isOperator && order.status === 'IN_PROGRESS' && isMultiEmployee ? (
+                  hasMyPartFinished && !allEmployeesFinished ? (
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      disabled
+                      className="flex-1 sm:flex-none border-emerald-500/30 bg-emerald-50 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300 opacity-90 cursor-not-allowed"
+                    >
+                      <CheckCircle2 className="size-4 mr-1 text-emerald-600 dark:text-emerald-400" />
+                      <span>Servicio listo (Esperando compañero)</span>
+                    </Button>
+                  ) : (
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      className="flex-1 sm:flex-none font-semibold text-primary"
+                      loading={changeStatus.isPending}
+                      onClick={async () => {
+                        try {
+                          const res: any = await changeStatus.mutateAsync({ id: order.id, status: 'READY' });
+                          if (res?.waitingForOtherEmployees) {
+                            toast.info(res.message || 'Servicio marcado como terminado. Esperando a que el otro empleado termine.');
+                          } else {
+                            toast.success('¡Servicios completados! La orden está lista.');
+                          }
+                        } catch (err: any) {
+                          toast.error(err instanceof Error ? err.message : 'Error al actualizar');
+                        }
+                      }}
+                    >
+                      Terminar mi servicio
+                    </Button>
+                  )
+                ) : next ? (
                   <Button
                     variant="secondary"
                     size="sm"
@@ -205,20 +263,57 @@ export default function OrderDetailPage() {
                       void changeStatus.mutateAsync({ id: order.id, status: next.status })
                     }
                   >
-                    {next.label}
+                    {!isOperator && isMultiEmployee && order.status === 'IN_PROGRESS' && !allEmployeesFinished
+                      ? `Marcar como lista (${finishedEmployeeIds.length}/${assignedEmployeeIds.length} listos)`
+                      : next.label}
                   </Button>
                 ) : null}
                 {!isOperator && (
-                  <Button variant="success" size="sm" className="w-full sm:w-auto font-semibold" onClick={() => setCheckoutOpen(true)}>
-                    <Banknote className="size-4" />
-                    <span>Cobrar</span>
-                  </Button>
+                  isMultiEmployee && order.status === 'IN_PROGRESS' && !allEmployeesFinished ? (
+                    <Button
+                      variant="success"
+                      size="sm"
+                      className="w-full sm:w-auto font-semibold opacity-60 cursor-not-allowed"
+                      onClick={() => {
+                        toast.warning('Aún no se puede cobrar: el vehículo tiene 2 o más empleados asignados y deben terminar ambos para cobrar.');
+                      }}
+                    >
+                      <Banknote className="size-4" />
+                      <span>Cobrar</span>
+                    </Button>
+                  ) : (
+                    <Button variant="success" size="sm" className="w-full sm:w-auto font-semibold" onClick={() => setCheckoutOpen(true)}>
+                      <Banknote className="size-4" />
+                      <span>Cobrar</span>
+                    </Button>
+                  )
                 )}
               </>
             ) : null}
           </div>
         }
       />
+
+      {order.status === 'IN_PROGRESS' && isMultiEmployee ? (
+        <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50/80 p-4 text-sm text-amber-950 shadow-sm dark:border-amber-900/40 dark:bg-amber-950/20 dark:text-amber-200">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-2 font-medium">
+              <Users className="size-5 text-amber-600 dark:text-amber-400 shrink-0" />
+              <span>
+                Vehículo con {assignedEmployeeIds.length} empleados asignados: {new Set(finishedEmployeeIds).size} de {assignedEmployeeIds.length} han terminado su servicio.
+              </span>
+            </div>
+            {isOperator && hasMyPartFinished ? (
+              <Badge variant="outline" className="border-emerald-500 text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/30">
+                ✓ Tu parte está completada
+              </Badge>
+            ) : null}
+          </div>
+          <p className="mt-1 text-xs text-muted-foreground">
+            El cobro y la entrega se habilitarán automáticamente cuando ambos empleados hayan terminado todos los servicios asignados.
+          </p>
+        </div>
+      ) : null}
 
       <div className="grid gap-6 xl:grid-cols-[1fr_360px]">
         <div className="space-y-6">
@@ -303,7 +398,7 @@ export default function OrderDetailPage() {
                         ) : null}
                       </p>
                       <p className="flex flex-wrap items-center gap-x-3 text-xs text-muted-foreground">
-                        <span>{money(item.price)} c/u</span>
+                        {!isOperator && <span>{money(item.price)} c/u</span>}
                         {item.durationMin > 0 ? (
                           <span className="flex items-center gap-1">
                             <Clock className="size-3" aria-hidden />
@@ -315,9 +410,11 @@ export default function OrderDetailPage() {
                     </div>
 
                     <div className="shrink-0 text-right">
-                      <span className="font-medium tabular-nums block">
-                        {money(item.price * item.quantity)}
-                      </span>
+                      {!isOperator && (
+                        <span className="font-medium tabular-nums block">
+                          {money(item.price * item.quantity)}
+                        </span>
+                      )}
                       {isOperator ? (
                         <span className="text-xs text-emerald-600 dark:text-emerald-400 font-semibold block">
                           Comisión: {money(Math.round(item.price * item.quantity * 0.5))}
@@ -448,7 +545,10 @@ export default function OrderDetailPage() {
               {isOperator ? (
                 <div className="space-y-3">
                   <dl className="space-y-1.5 text-sm">
-                    <Row label="Mis servicios asignados" value={money(operatorServicesTotal)} />
+                    <Row
+                      label="Servicios asignados"
+                      value={`${visibleItems.reduce((acc, i) => acc + i.quantity, 0)}`}
+                    />
                     <Row
                       label="Tiempo estimado"
                       value={formatMinutes(

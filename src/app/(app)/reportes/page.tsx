@@ -699,7 +699,7 @@ function EmployeeEarningsTab({ range, employeeId }: { range: RangeValue; employe
 
   return (
     <div className="space-y-6">
-      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         <StatCard
           label="Servicios realizados"
           value={summary?.servicesCount ?? 0}
@@ -707,13 +707,6 @@ function EmployeeEarningsTab({ range, employeeId }: { range: RangeValue; employe
           tone="sky"
           loading={isLoading}
           hint={`${summary?.ordersCount ?? 0} órdenes atendidas`}
-        />
-        <StatCard
-          label="Valor total servicios"
-          value={money(summary?.servicesTotal)}
-          icon={CircleDollarSign}
-          tone="primary"
-          loading={isLoading}
         />
         <StatCard
           label="Mi Comisión (50%)"
@@ -735,7 +728,7 @@ function EmployeeEarningsTab({ range, employeeId }: { range: RangeValue; employe
 
       <Card>
         <CardHeader>
-          <CardTitle>Desglose de servicios y comisiones (50%)</CardTitle>
+          <CardTitle>Desglose de mis servicios y comisiones (50%)</CardTitle>
         </CardHeader>
         <CardContent className="px-0 pb-0">
           {isLoading ? (
@@ -755,11 +748,9 @@ function EmployeeEarningsTab({ range, employeeId }: { range: RangeValue; employe
                   <TableHead>Placa</TableHead>
                   <TableHead>Servicio</TableHead>
                   <TableHead className="text-center">Cant.</TableHead>
-                  <TableHead className="text-right">Precio Servicio</TableHead>
                   <TableHead className="text-right font-bold text-emerald-600 dark:text-emerald-400">
                     Mi Comisión (50%)
                   </TableHead>
-                  <TableHead className="text-right text-muted-foreground">Empresa (50%)</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -772,12 +763,8 @@ function EmployeeEarningsTab({ range, employeeId }: { range: RangeValue; employe
                     <TableCell className="font-semibold">{item.vehiclePlate}</TableCell>
                     <TableCell className="font-medium">{item.serviceName}</TableCell>
                     <TableCell className="text-center tabular-nums">{item.quantity}</TableCell>
-                    <TableCell className="text-right tabular-nums">{money(item.totalPrice)}</TableCell>
                     <TableCell className="text-right font-bold tabular-nums text-emerald-600 dark:text-emerald-400">
                       {money(item.commission)}
-                    </TableCell>
-                    <TableCell className="text-right text-muted-foreground tabular-nums">
-                      {money(item.companyShare)}
                     </TableCell>
                   </TableRow>
                 ))}
