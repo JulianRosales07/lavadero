@@ -96,19 +96,7 @@ export function unpackEncryptedToken<T = any>(tokenStr: string): T | null {
 /**
  * Obtiene la clave pública activa del servidor o usa la predeterminada.
  */
-async function fetchServerPublicKey(): Promise<string> {
-  try {
-    const apiUrl = import.meta.env.VITE_API_URL?.replace(/\/+$/, '') || '';
-    if (apiUrl && typeof window !== 'undefined') {
-      const res = await fetch(`${apiUrl}/api/security/public-key`, { cache: 'force-cache' });
-      if (res.ok) {
-        const data = await res.json();
-        if (data?.publicKey) return data.publicKey;
-      }
-    }
-  } catch {
-    // Usar la clave por defecto
-  }
+function fetchServerPublicKey(): string {
   return DEFAULT_PUBLIC_KEY_PEM;
 }
 
@@ -122,12 +110,7 @@ async function getOrImportRsaKey(): Promise<CryptoKey | null> {
     return null;
   }
 
-  let pem = DEFAULT_PUBLIC_KEY_PEM;
-  try {
-    pem = await fetchServerPublicKey();
-  } catch {
-    pem = DEFAULT_PUBLIC_KEY_PEM;
-  }
+  const pem = DEFAULT_PUBLIC_KEY_PEM;
 
   try {
     const cleanB64 = pem.replace(/-----[^\n]+-----/g, '').replace(/\s+/g, '');

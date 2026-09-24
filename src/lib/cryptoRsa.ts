@@ -57,32 +57,15 @@ function pemToArrayBuffer(pem: string): ArrayBuffer {
 }
 
 /**
- * Consulta la clave pública activa del servidor o utiliza la clave de respaldo.
+ * Obtiene la clave pública asimétrica RSA preconfigurada del servidor.
  */
-export async function obtenerClavePublicaServidor(): Promise<string> {
-  try {
-    const apiUrl = (import.meta.env.VITE_API_URL || '').replace(/\/+$/, '');
-    if (apiUrl && typeof window !== 'undefined') {
-      // Intenta primero /api/auth/public-key, luego /api/security/public-key
-      const res = await fetch(`${apiUrl}/api/auth/public-key`, { cache: 'force-cache' }).catch(() => null);
-      if (res && res.ok) {
-        const json = await res.json();
-        if (json?.publicKey) return json.publicKey;
-      }
-      const resSec = await fetch(`${apiUrl}/api/security/public-key`, { cache: 'force-cache' }).catch(() => null);
-      if (resSec && resSec.ok) {
-        const jsonSec = await resSec.json();
-        if (jsonSec?.publicKey) return jsonSec.publicKey;
-      }
-    }
-  } catch {
-    // Si falla la red, usar clave por defecto
-  }
+export function obtenerClavePublicaServidor(): string {
   return DEFAULT_PUBLIC_KEY_PEM;
 }
 
 /**
- * Importa o reutiliza la clave pública RSA en formato CryptoKey para Web Crypto API.
+ * Importa o reutiliza la clave pública RSA en formato CryptoKey para Web Crypto API
+ * sin realizar peticiones de red (evita exponer la llamada en DevTools Network).
  */
 export async function getCryptoKey(): Promise<CryptoKey | null> {
   if (cachedRsaKey) return cachedRsaKey;
@@ -91,12 +74,7 @@ export async function getCryptoKey(): Promise<CryptoKey | null> {
     return null;
   }
 
-  let pem = DEFAULT_PUBLIC_KEY_PEM;
-  try {
-    pem = await obtenerClavePublicaServidor();
-  } catch {
-    pem = DEFAULT_PUBLIC_KEY_PEM;
-  }
+  const pem = DEFAULT_PUBLIC_KEY_PEM;
 
   try {
     const spkiBuffer = pemToArrayBuffer(pem);
