@@ -34,8 +34,8 @@ export default function LoginPage() {
     setSubmitting(true);
     try {
       const authenticated = await login(email, password);
-      toast.success(`Bienvenido, ${authenticated.name}`);
-      if (authenticated.role === 'SUPER_ADMIN') {
+      toast.success(`Bienvenido, ${authenticated?.name ?? 'Usuario'}`);
+      if (authenticated?.role === 'SUPER_ADMIN') {
         navigate('/superadmin/dashboard', { replace: true });
       } else {
         navigate('/dashboard', { replace: true });

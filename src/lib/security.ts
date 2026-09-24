@@ -74,7 +74,7 @@ export function unpackEncryptedToken<T = any>(tokenStr: string): T | null {
   try {
     const parts = tokenStr.slice('$enc$tok:'.length).split(':');
     const shift = parts.length >= 2 ? parseInt(parts[0], 10) : DEFAULT_SHIFT;
-    let b64 = parts.length >= 2 ? parts[1] : parts[0];
+    let b64 = parts.length >= 2 ? parts.slice(1).join(':') : parts[0];
     b64 = b64.replace(/-/g, '+').replace(/_/g, '/');
     while (b64.length % 4) {
       b64 += '=';

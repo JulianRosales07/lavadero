@@ -13,7 +13,8 @@ const API_URL = getApiUrl();
 
 const TOKEN_KEY = 'lavadero.token';
 
-import { secureRequestPayload, unpackEncryptedToken } from './security';
+import { unpackEncryptedToken } from './security';
+import { cifrarPayload } from './cryptoRsa';
 
 export class ApiError extends Error {
   status: number;
@@ -68,8 +69,25 @@ async function request<T>(
     if (options.formData) {
       serializedBody = options.formData;
     } else if (options.body !== undefined) {
-      const securedBody = await secureRequestPayload(options.body);
-      serializedBody = JSON.stringify(securedBody);
+      const isSensitive =
+        typeof options.body === 'object' &&
+        options.body !== null &&
+        (path.includes('/auth/login') ||
+          path.includes('/auth/password') ||
+          path.includes('/auth/users') ||
+          Object.keys(options.body).some((k) => k.toLowerCase().includes('password') || k === 'pin'));
+
+      if (isSensitive) {
+        try {
+          const encrypted = await cifrarPayload(options.body as object);
+          serializedBody = JSON.stringify(encrypted);
+        } catch (err) {
+          console.warn('[CryptoRSA] Error al cifrar con RSA, enviando payload regular:', err);
+          serializedBody = JSON.stringify(options.body);
+        }
+      } else {
+        serializedBody = JSON.stringify(options.body);
+      }
     }
 
     response = await fetch(buildUrl(path, options.query), {

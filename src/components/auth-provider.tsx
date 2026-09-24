@@ -58,8 +58,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const loggedUser =
       result.user ||
       (result.data ? unpackEncryptedToken<{ user: AuthUser }>(result.data)?.user : null);
-    setUser(loggedUser ?? null);
-    return loggedUser as AuthUser;
+    if (!loggedUser) {
+      throw new Error('No se pudo verificar la sesión. Por favor recarga la página (Ctrl + Shift + R).');
+    }
+    setUser(loggedUser);
+    return loggedUser;
   }, []);
 
   const logout = React.useCallback(() => {
