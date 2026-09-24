@@ -150,6 +150,7 @@ export default function OrderDetailPage() {
   const next = NEXT_STATUS[order.status];
   const initialEvidences = order.evidences.filter((item) => item.stage === 'INITIAL');
   const finalEvidences = order.evidences.filter((item) => item.stage === 'FINAL');
+  const orderForView = isOperator ? { ...order, items: visibleItems } : order;
 
   const onWhatsApp = () => {
     const phone = digitsOnly(order.customer.phone);
