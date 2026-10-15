@@ -199,7 +199,16 @@ export default function CustomersPage() {
                             <span className="text-xs text-muted-foreground">Sin vehículos</span>
                           ) : (
                             customer.vehicles.map((vehicle) => (
-                              <Badge key={vehicle.id} variant="outline" className="font-mono">
+                              <Badge
+                                key={vehicle.id}
+                                variant="outline"
+                                className="font-mono cursor-pointer hover:border-primary hover:bg-primary/5 transition-colors"
+                                title="Editar cliente y vehículos"
+                                onClick={() => {
+                                  setEditing(customer);
+                                  setDialogOpen(true);
+                                }}
+                              >
                                 <span aria-hidden>{VEHICLE_TYPE_META[vehicle.type].icon}</span>
                                 {vehicle.plate}
                               </Badge>
@@ -232,7 +241,7 @@ export default function CustomersPage() {
                             }}
                           >
                             <Pencil />
-                            Editar datos
+                            Editar cliente y vehículos
                           </DropdownMenuItem>
                           <DropdownMenuItem destructive onClick={() => setToDelete(customer)}>
                             <Trash2 />
@@ -301,7 +310,16 @@ export default function CustomersPage() {
                           <span className="text-xs text-muted-foreground">Sin vehículos</span>
                         ) : (
                           customer.vehicles.map((vehicle) => (
-                            <Badge key={vehicle.id} variant="outline" className="font-mono">
+                            <Badge
+                              key={vehicle.id}
+                              variant="outline"
+                              className="font-mono cursor-pointer hover:border-primary hover:bg-primary/5 transition-colors"
+                              title="Editar cliente y vehículos"
+                              onClick={() => {
+                                setEditing(customer);
+                                setDialogOpen(true);
+                              }}
+                            >
                               <span aria-hidden>{VEHICLE_TYPE_META[vehicle.type].icon}</span>
                               {vehicle.plate}
                             </Badge>
@@ -360,7 +378,7 @@ export default function CustomersPage() {
                               }}
                             >
                               <Pencil />
-                              Editar datos
+                              Editar cliente y vehículos
                             </DropdownMenuItem>
                             <DropdownMenuItem asChild>
                               <Link to={`/ordenes?q=${encodeURIComponent(customer.phone ?? customer.firstName)}`}>

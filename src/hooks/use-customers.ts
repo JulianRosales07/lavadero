@@ -12,6 +12,7 @@ import type {
 } from '@/lib/types';
 
 export interface VehicleInput {
+  id?: string;
   plate: string;
   brand?: string | null;
   model?: string | null;
@@ -81,6 +82,7 @@ export function useUpdateCustomer() {
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['customers'] });
       void queryClient.invalidateQueries({ queryKey: ['customer'] });
+      void queryClient.invalidateQueries({ queryKey: ['orders'] });
       toast.success('Cliente actualizado');
     },
     onError: (error: Error) => toast.error(error.message),

@@ -1,8 +1,9 @@
 'use client';
 
 import * as React from 'react';
-import { Camera, Loader2, Plus, Trash2, X } from 'lucide-react';
+import { Camera, Loader2, Plus, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -23,7 +24,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { useCreateCustomer, useUpdateCustomer, type VehicleInput } from '@/hooks/use-customers';
+import { ConfirmDialog } from '@/components/shared/confirm-dialog';
+import {
+  useCreateCustomer,
+  useDeleteVehicle,
+  useUpdateCustomer,
+  type VehicleInput,
+} from '@/hooks/use-customers';
 import { useUpload } from '@/hooks/use-upload';
 import { VEHICLE_TYPES, VEHICLE_TYPE_META } from '@/lib/constants';
 import type { Customer, IdentificationDocumentCode } from '@/lib/types';
@@ -36,6 +43,7 @@ const emptyVehicle = (): VehicleInput => ({
   color: '',
   type: 'CAR',
   photoUrl: null,
+  notes: '',
 });
 
 export function CustomerDialog({
@@ -54,6 +62,7 @@ export function CustomerDialog({
   const editing = Boolean(customer);
   const createCustomer = useCreateCustomer();
   const updateCustomer = useUpdateCustomer();
+  const deleteVehicle = useDeleteVehicle();
 
   const [firstName, setFirstName] = React.useState('');
   const [lastName, setLastName] = React.useState('');
@@ -65,6 +74,11 @@ export function CustomerDialog({
   const [identification, setIdentification] = React.useState('');
   const [address, setAddress] = React.useState('');
   const [vehicles, setVehicles] = React.useState<VehicleInput[]>([emptyVehicle()]);
+  const [vehicleToDelete, setVehicleToDelete] = React.useState<{
+    id: string;
+    plate: string;
+    index: number;
+  } | null>(null);
 
   // Rellena el formulario al abrir
   React.useEffect(() => {
@@ -77,11 +91,49 @@ export function CustomerDialog({
     setIdentificationDocumentCode(customer?.identificationDocumentCode ?? '13');
     setIdentification(customer?.identification ?? '');
     setAddress(customer?.address ?? '');
-    setVehicles(customer ? [] : [emptyVehicle()]);
+
+    if (customer && customer.vehicles && customer.vehicles.length > 0) {
+      setVehicles(
+        customer.vehicles.map((v) => ({
+          id: v.id,
+          plate: v.plate,
+          brand: v.brand ?? '',
+          model: v.model ?? '',
+          color: v.color ?? '',
+          type: v.type,
+          photoUrl: v.photoUrl ?? null,
+          notes: v.notes ?? '',
+        })),
+      );
+    } else {
+      setVehicles([emptyVehicle()]);
+    }
   }, [open, customer]);
 
   const updateVehicle = (index: number, patch: Partial<VehicleInput>) => {
-    setVehicles((prev) => prev.map((vehicle, i) => (i === index ? { ...vehicle, ...patch } : vehicle)));
+    setVehicles((prev) =>
+      prev.map((vehicle, i) => (i === index ? { ...vehicle, ...patch } : vehicle)),
+    );
+  };
+
+  const handleRemoveVehicle = (index: number) => {
+    const target = vehicles[index];
+    if (target?.id) {
+      setVehicleToDelete({ id: target.id, plate: target.plate || 'Sin placa', index });
+    } else {
+      setVehicles((prev) => prev.filter((_, i) => i !== index));
+    }
+  };
+
+  const onConfirmDeleteVehicle = async () => {
+    if (!vehicleToDelete) return;
+    try {
+      await deleteVehicle.mutateAsync({ id: vehicleToDelete.id });
+      setVehicles((prev) => prev.filter((_, i) => i !== vehicleToDelete.index));
+      setVehicleToDelete(null);
+    } catch {
+      // Notificado por toast del hook
+    }
   };
 
   const submitting = createCustomer.isPending || updateCustomer.isPending;
@@ -102,6 +154,8 @@ export function CustomerDialog({
         brand: vehicle.brand?.trim() || null,
         model: vehicle.model?.trim() || null,
         color: vehicle.color?.trim() || null,
+        notes: vehicle.notes?.trim() || null,
+        photoUrl: vehicle.photoUrl || null,
       }));
 
     if (!editing && cleanVehicles.length === 0) {
@@ -118,6 +172,7 @@ export function CustomerDialog({
       identificationDocumentCode: identificationDocumentCode || null,
       identification: identification.trim() || null,
       address: address.trim() || null,
+      vehicles: cleanVehicles,
     };
 
     if (editing && customer) {
@@ -126,171 +181,206 @@ export function CustomerDialog({
       return;
     }
 
-    const created = await createCustomer.mutateAsync({ ...payload, vehicles: cleanVehicles });
+    const created = await createCustomer.mutateAsync(payload);
     toast.success('Cliente registrado');
     onOpenChange(false);
     onCreated?.(created);
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent size="lg" className="max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>{editing ? 'Editar cliente' : 'Nuevo cliente'}</DialogTitle>
-          <DialogDescription>
-            {editing
-              ? 'Actualiza los datos de contacto del cliente.'
-              : 'Registra el cliente y su vehículo. Al guardar podrás crear la orden de inmediato.'}
-          </DialogDescription>
-        </DialogHeader>
+    <>
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent size="lg" className="max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{editing ? 'Editar cliente' : 'Nuevo cliente'}</DialogTitle>
+            <DialogDescription>
+              {editing
+                ? 'Actualiza los datos del cliente y la información de sus vehículos.'
+                : 'Registra el cliente y su vehículo. Al guardar podrás crear la orden de inmediato.'}
+            </DialogDescription>
+          </DialogHeader>
 
-        <form onSubmit={onSubmit} className="space-y-5">
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="firstName">Nombres *</Label>
-              <Input
-                id="firstName"
-                value={firstName}
-                onChange={(event) => setFirstName(event.target.value)}
-                placeholder="Juan Carlos"
-                autoFocus
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="lastName">Apellidos</Label>
-              <Input
-                id="lastName"
-                value={lastName}
-                onChange={(event) => setLastName(event.target.value)}
-                placeholder="Pérez Rojas"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="phone">Teléfono</Label>
-              <Input
-                id="phone"
-                type="tel"
-                value={phone}
-                onChange={(event) => setPhone(event.target.value)}
-                placeholder="300 123 4567"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="email">Correo electrónico</Label>
-              <Input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(event) => setEmail(event.target.value)}
-                placeholder="cliente@correo.com"
-              />
-            </div>
-            <div className="space-y-2 sm:col-span-2">
-              <Label htmlFor="notes">Observaciones</Label>
-              <Textarea
-                id="notes"
-                value={notes}
-                onChange={(event) => setNotes(event.target.value)}
-                placeholder="Preferencias, acuerdos, datos de facturación..."
-                className="min-h-[70px]"
-              />
-            </div>
-          </div>
-
-          <Separator />
-
-          <div className="space-y-4">
-            <div>
-              <h3 className="text-sm font-semibold">Datos de facturación electrónica (opcional)</h3>
-              <p className="text-xs text-muted-foreground">
-                Solo necesario si vas a emitir factura electrónica. Completa el tipo y número de documento.
-              </p>
-            </div>
+          <form onSubmit={onSubmit} className="space-y-5">
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label>Tipo de documento</Label>
-                <Select
-                  value={identificationDocumentCode || '__none__'}
-                  onValueChange={(value) =>
-                    setIdentificationDocumentCode(
-                      value === '__none__' ? '' : (value as IdentificationDocumentCode),
-                    )
-                  }
-                >
-                  <SelectTrigger><SelectValue placeholder="Selecciona" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="__none__">Sin especificar</SelectItem>
-                    <SelectItem value="13">Cédula de ciudadanía</SelectItem>
-                    <SelectItem value="31">NIT</SelectItem>
-                    <SelectItem value="22">Cédula de extranjería</SelectItem>
-                    <SelectItem value="12">Tarjeta de identidad</SelectItem>
-                    <SelectItem value="41">Pasaporte</SelectItem>
-                    <SelectItem value="11">Registro civil</SelectItem>
-                    <SelectItem value="47">Permiso especial de permanencia</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Label htmlFor="firstName">Nombres *</Label>
+                <Input
+                  id="firstName"
+                  value={firstName}
+                  onChange={(event) => setFirstName(event.target.value)}
+                  placeholder="Juan Carlos"
+                  autoFocus
+                  required
+                />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="identification">Número de documento</Label>
+                <Label htmlFor="lastName">Apellidos</Label>
                 <Input
-                  id="identification"
-                  value={identification}
-                  onChange={(event) => setIdentification(event.target.value)}
-                  placeholder="Ej: 1234567890"
+                  id="lastName"
+                  value={lastName}
+                  onChange={(event) => setLastName(event.target.value)}
+                  placeholder="Pérez Rojas"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="phone">Teléfono</Label>
+                <Input
+                  id="phone"
+                  type="tel"
+                  value={phone}
+                  onChange={(event) => setPhone(event.target.value)}
+                  placeholder="300 123 4567"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="email">Correo electrónico</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(event) => setEmail(event.target.value)}
+                  placeholder="cliente@correo.com"
+                />
+              </div>
+              <div className="space-y-2 sm:col-span-2">
+                <Label htmlFor="notes">Observaciones</Label>
+                <Textarea
+                  id="notes"
+                  value={notes}
+                  onChange={(event) => setNotes(event.target.value)}
+                  placeholder="Preferencias, acuerdos, datos de facturación..."
+                  className="min-h-[70px]"
                 />
               </div>
             </div>
-          </div>
 
-          {!editing && (
-            <>
-              <Separator />
+            <Separator />
 
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="text-sm font-semibold">Información del vehículo</h3>
-                    <p className="text-xs text-muted-foreground">
-                      Puedes registrar más de un vehículo por cliente.
-                    </p>
-                  </div>
+            <div className="space-y-4">
+              <div>
+                <h3 className="text-sm font-semibold">Datos de facturación electrónica (opcional)</h3>
+                <p className="text-xs text-muted-foreground">
+                  Solo necesario si vas a emitir factura electrónica. Completa el tipo y número de documento.
+                </p>
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label>Tipo de documento</Label>
+                  <Select
+                    value={identificationDocumentCode || '__none__'}
+                    onValueChange={(value) =>
+                      setIdentificationDocumentCode(
+                        value === '__none__' ? '' : (value as IdentificationDocumentCode),
+                      )
+                    }
+                  >
+                    <SelectTrigger><SelectValue placeholder="Selecciona" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="__none__">Sin especificar</SelectItem>
+                      <SelectItem value="13">Cédula de ciudadanía</SelectItem>
+                      <SelectItem value="31">NIT</SelectItem>
+                      <SelectItem value="22">Cédula de extranjería</SelectItem>
+                      <SelectItem value="12">Tarjeta de identidad</SelectItem>
+                      <SelectItem value="41">Pasaporte</SelectItem>
+                      <SelectItem value="11">Registro civil</SelectItem>
+                      <SelectItem value="47">Permiso especial de permanencia</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="identification">Número de documento</Label>
+                  <Input
+                    id="identification"
+                    value={identification}
+                    onChange={(event) => setIdentification(event.target.value)}
+                    placeholder="Ej: 1234567890"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <Separator />
+
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-sm font-semibold">
+                    {editing ? 'Vehículos del cliente' : 'Información del vehículo'}
+                  </h3>
+                  <p className="text-xs text-muted-foreground">
+                    {editing
+                      ? 'Modifica los datos de los vehículos o agrega nuevos para este cliente.'
+                      : 'Puedes registrar más de un vehículo por cliente.'}
+                  </p>
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setVehicles((prev) => [...prev, emptyVehicle()])}
+                >
+                  <Plus />
+                  Agregar vehículo
+                </Button>
+              </div>
+
+              {vehicles.length === 0 ? (
+                <div className="rounded-xl border border-dashed border-border/80 p-6 text-center">
+                  <p className="text-sm text-muted-foreground">
+                    Este cliente aún no tiene vehículos registrados.
+                  </p>
                   <Button
                     type="button"
                     variant="outline"
                     size="sm"
-                    onClick={() => setVehicles((prev) => [...prev, emptyVehicle()])}
+                    className="mt-3"
+                    onClick={() => setVehicles([emptyVehicle()])}
                   >
                     <Plus />
-                    Agregar
+                    Agregar primer vehículo
                   </Button>
                 </div>
-
-                {vehicles.map((vehicle, index) => (
+              ) : (
+                vehicles.map((vehicle, index) => (
                   <VehicleFields
-                    key={index}
+                    key={vehicle.id ?? `vehicle-new-${index}`}
                     vehicle={vehicle}
                     index={index}
-                    removable={vehicles.length > 1}
+                    removable={editing ? true : vehicles.length > 1}
                     onChange={(patch) => updateVehicle(index, patch)}
-                    onRemove={() => setVehicles((prev) => prev.filter((_, i) => i !== index))}
+                    onRemove={() => handleRemoveVehicle(index)}
                   />
-                ))}
-              </div>
-            </>
-          )}
+                ))
+              )}
+            </div>
 
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Cancelar
-            </Button>
-            <Button type="submit" loading={submitting}>
-              {editing ? 'Guardar cambios' : 'Guardar y crear orden'}
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+                Cancelar
+              </Button>
+              <Button type="submit" loading={submitting}>
+                {editing ? 'Guardar cambios' : 'Guardar y crear orden'}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      <ConfirmDialog
+        open={Boolean(vehicleToDelete)}
+        onOpenChange={(open) => !open && setVehicleToDelete(null)}
+        title="¿Eliminar vehículo?"
+        description={
+          vehicleToDelete
+            ? `Se eliminará el vehículo con placa «${vehicleToDelete.plate}» de este cliente. Si tiene órdenes de servicio registradas en el sistema, la eliminación será rechazada por seguridad.`
+            : undefined
+        }
+        confirmLabel="Eliminar vehículo"
+        destructive
+        loading={deleteVehicle.isPending}
+        onConfirm={onConfirmDeleteVehicle}
+      />
+    </>
   );
 }
 
@@ -309,7 +399,7 @@ function VehicleFields({
   onRemove: () => void;
 }) {
   const { uploading, uploadOne } = useUpload('vehicles');
-  const inputId = `vehicle-photo-${index}`;
+  const inputId = `vehicle-photo-${vehicle.id ?? index}`;
 
   const onPickPhoto = async (file?: File) => {
     if (!file) return;
@@ -319,13 +409,32 @@ function VehicleFields({
 
   return (
     <div className="rounded-xl border border-border/70 bg-muted/30 p-4">
-      <div className="flex items-start justify-between gap-2 pb-3">
-        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-          Vehículo {index + 1}
-        </p>
+      <div className="flex items-center justify-between gap-2 pb-3">
+        <div className="flex items-center gap-2">
+          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            Vehículo {index + 1}
+            {vehicle.plate ? ` · ${vehicle.plate}` : ''}
+          </p>
+          {vehicle.id ? (
+            <Badge variant="secondary" className="text-[10px] py-0 px-1.5 font-normal">
+              Guardado
+            </Badge>
+          ) : (
+            <Badge variant="outline" className="text-[10px] py-0 px-1.5 font-normal text-primary border-primary/30">
+              Nuevo
+            </Badge>
+          )}
+        </div>
         {removable ? (
-          <Button type="button" variant="ghost" size="icon-sm" onClick={onRemove} aria-label="Quitar vehículo">
-            <X />
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon-sm"
+            onClick={onRemove}
+            aria-label="Quitar vehículo"
+            className="text-muted-foreground hover:text-destructive"
+          >
+            <Trash2 className="size-4" />
           </Button>
         ) : null}
       </div>
@@ -436,7 +545,7 @@ function VehicleFields({
               placeholder="Yaris"
             />
           </div>
-          <div className="space-y-1.5 sm:col-span-2">
+          <div className="space-y-1.5">
             <Label htmlFor={`color-${index}`} className="text-xs">
               Color
             </Label>
@@ -445,6 +554,17 @@ function VehicleFields({
               value={vehicle.color ?? ''}
               onChange={(event) => onChange({ color: event.target.value })}
               placeholder="Plateado"
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor={`notes-${index}`} className="text-xs">
+              Observaciones (opcional)
+            </Label>
+            <Input
+              id={`notes-${index}`}
+              value={vehicle.notes ?? ''}
+              onChange={(event) => onChange({ notes: event.target.value })}
+              placeholder="Ej: Rayón puerta, polarizado..."
             />
           </div>
         </div>
