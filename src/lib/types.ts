@@ -3,7 +3,21 @@
 // =====================================================================
 
 export type UserRole = 'SUPER_ADMIN' | 'ADMIN' | 'CASHIER' | 'OPERATOR';
-export type VehicleType = 'CAR' | 'PICKUP' | 'MOTORCYCLE' | 'TRUCK';
+export type VehicleType =
+  | 'CAR'
+  | 'PICKUP'
+  | 'MOTORCYCLE'
+  | 'TAXI'
+  | 'VAN'
+  | 'MICROBUS'
+  | 'AEROBAN'
+  | 'BUSETA'
+  | 'BUS'
+  | 'TRUCK'
+  | 'VOLQUETA'
+  | 'TRACTOCAMION'
+  | 'MOTOCARRO'
+  | 'OTHER';
 export type EmployeeStatus = 'ACTIVE' | 'INACTIVE';
 export type OrderStatus = 'PENDING' | 'IN_PROGRESS' | 'READY' | 'FINISHED' | 'CANCELLED';
 export type DiscountType = 'AMOUNT' | 'PERCENT';

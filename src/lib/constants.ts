@@ -70,7 +70,17 @@ export const VEHICLE_TYPE_META: Record<VehicleType, { label: string; icon: strin
   CAR: { label: 'Automóvil', icon: '🚗' },
   PICKUP: { label: 'Camioneta', icon: '🛻' },
   MOTORCYCLE: { label: 'Moto', icon: '🏍️' },
+  TAXI: { label: 'Taxi', icon: '🚕' },
+  VAN: { label: 'Van', icon: '🚐' },
+  MICROBUS: { label: 'Microbús', icon: '🚐' },
+  AEROBAN: { label: 'Aerovan', icon: '🚐' },
+  BUSETA: { label: 'Buseta', icon: '🚐' },
+  BUS: { label: 'Bus', icon: '🚌' },
   TRUCK: { label: 'Camión', icon: '🚚' },
+  VOLQUETA: { label: 'Volqueta', icon: '🚛' },
+  TRACTOCAMION: { label: 'Tractocamión', icon: '🚛' },
+  MOTOCARRO: { label: 'Motocarro', icon: '🛺' },
+  OTHER: { label: 'Otro', icon: '🚘' },
 };
 
 export const VEHICLE_TYPES = Object.keys(VEHICLE_TYPE_META) as VehicleType[];
