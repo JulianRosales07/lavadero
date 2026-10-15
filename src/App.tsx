@@ -17,6 +17,8 @@ import EmpleadosPage from '@/pages/empleados';
 import ServiciosPage from '@/pages/servicios';
 import PromocionesPage from '@/pages/promociones';
 import CajaPage from '@/pages/caja';
+import ComprasPage from '@/pages/compras';
+import PagosEmpleadosPage from '@/pages/pagos-empleados';
 import ReportesPage from '@/pages/reportes';
 import ConfiguracionPage from '@/pages/configuracion';
 
@@ -164,6 +166,22 @@ function App() {
             element={
               <ProtectedRoute allowedRoles={['ADMIN', 'CASHIER']}>
                 <CajaPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="compras"
+            element={
+              <ProtectedRoute allowedRoles={['ADMIN']}>
+                <ComprasPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="pagos-empleados"
+            element={
+              <ProtectedRoute allowedRoles={['ADMIN']}>
+                <PagosEmpleadosPage />
               </ProtectedRoute>
             }
           />

@@ -138,14 +138,17 @@ export function useCustomerOrdersReport(customerId: string, range: RangeValue) {
 }
 
 // ---------------------------------------------------------------------
-// Gastos
+// Gastos y Compras
 // ---------------------------------------------------------------------
 
-export function useExpenses(range: RangeValue) {
+export function useExpenses(range: RangeValue, category?: ExpenseCategory) {
   return useQuery({
-    queryKey: ['expenses', range],
+    queryKey: ['expenses', range, category],
     queryFn: () =>
-      api.get<{ total: number; data: Expense[] }>('/api/expenses', rangeParams(range)),
+      api.get<{ total: number; data: Expense[] }>('/api/expenses', {
+        ...rangeParams(range),
+        category,
+      }),
   });
 }
 
@@ -158,6 +161,9 @@ export function useSaveExpense() {
         concept: string;
         category: ExpenseCategory;
         amount: number;
+        supplier?: string | null;
+        quantity?: string | null;
+        paymentMethod?: string | null;
         notes?: string | null;
         spentAt?: string;
       },
@@ -169,7 +175,7 @@ export function useSaveExpense() {
       void queryClient.invalidateQueries({ queryKey: ['expenses'] });
       void queryClient.invalidateQueries({ queryKey: ['reports'] });
       void queryClient.invalidateQueries({ queryKey: ['dashboard'] });
-      toast.success(variables.id ? 'Gasto actualizado' : 'Gasto registrado');
+      toast.success(variables.id ? 'Gasto/compra actualizado' : 'Registrado exitosamente');
     },
     onError: (error: Error) => toast.error(error.message),
   });

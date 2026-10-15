@@ -337,6 +337,42 @@ export interface Expense {
   amount: number;
   notes: string | null;
   spentAt: string;
+  supplier?: string | null;
+  quantity?: string | null;
+  paymentMethod?: PaymentMethod | null;
+  employeeId?: string | null;
+}
+
+export type PayoutType = 'COMMISSION' | 'ADVANCE' | 'TIP' | 'SALARY' | 'BONUS' | 'OTHER';
+
+export interface EmployeePayout {
+  id: string;
+  employeeId: string;
+  employeeName?: string;
+  amount: number;
+  payoutType: PayoutType;
+  payoutTypeLabel?: string;
+  method: PaymentMethod;
+  paidAt: string;
+  periodFrom?: string | null;
+  periodTo?: string | null;
+  notes?: string | null;
+  expenseId?: string | null;
+}
+
+export interface EmployeePayoutSummary {
+  employeeId: string;
+  employeeName: string;
+  position: string | null;
+  status: string;
+  ordersCount: number;
+  servicesTotal: number;
+  commissionTotal: number;
+  tipsTotal: number;
+  totalEarned: number;
+  totalPaid: number;
+  pendingBalance: number;
+  payoutsCount: number;
 }
 
 export interface Paginated<T> {

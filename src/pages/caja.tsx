@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { Link } from 'react-router-dom';
 import {
   ArrowDownRight,
   ArrowUpRight,
@@ -10,6 +11,7 @@ import {
   Plus,
   Receipt,
   Scale,
+  ShoppingBag,
   Smartphone,
   Trash2,
   Wallet,
@@ -89,10 +91,24 @@ export default function CashPage() {
         title="Caja"
         description="Movimientos de dinero, gastos y balance del período."
         actions={
-          <Button onClick={() => setExpenseOpen(true)}>
-            <Plus />
-            Registrar gasto
-          </Button>
+          <div className="flex flex-wrap items-center gap-2">
+            <Button variant="outline" asChild>
+              <Link to="/compras">
+                <ShoppingBag className="size-4" />
+                Compras de insumos
+              </Link>
+            </Button>
+            <Button variant="outline" asChild>
+              <Link to="/pagos-empleados">
+                <HandCoins className="size-4" />
+                Pagos a empleados
+              </Link>
+            </Button>
+            <Button onClick={() => setExpenseOpen(true)}>
+              <Plus className="size-4" />
+              Registrar gasto
+            </Button>
+          </div>
         }
       />
 
