@@ -156,3 +156,15 @@ export function useSaveBusiness() {
     onError: (error: Error) => toast.error(error.message),
   });
 }
+
+export function useWipeCurrentBusiness() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: { confirmName: string; wipeCatalog?: boolean; wipeEmployees?: boolean }) =>
+      api.post<{ success: boolean; message: string; result: any }>('/api/settings/wipe-data', data),
+    onSuccess: () => {
+      void queryClient.invalidateQueries();
+    },
+  });
+}
+

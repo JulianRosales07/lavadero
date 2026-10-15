@@ -2,15 +2,23 @@
 
 import * as React from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Building2, Camera, FileText, KeyRound, Loader2, Printer, Trash2 } from 'lucide-react';
+import { AlertTriangle, Building2, Camera, FileText, KeyRound, Loader2, Printer, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/components/auth-provider';
 import { PageHeader } from '@/components/shared/page-header';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import {
   Select,
   SelectContent,
@@ -21,7 +29,7 @@ import {
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
-import { useBusiness, useSaveBusiness } from '@/hooks/use-catalog';
+import { useBusiness, useSaveBusiness, useWipeCurrentBusiness } from '@/hooks/use-catalog';
 import { useFactusNumberingRanges } from '@/hooks/use-electronic-invoices';
 import { useUpload } from '@/hooks/use-upload';
 import { api, ApiError } from '@/lib/api';
@@ -104,11 +112,18 @@ export default function SettingsPage() {
 // ---------------------------------------------------------------------
 
 function BusinessTab() {
+  const { user } = useAuth();
   const { data: business, isLoading } = useBusiness();
   const saveBusiness = useSaveBusiness();
+  const wipeBusiness = useWipeCurrentBusiness();
   const { uploading, uploadOne } = useUpload('logos');
 
   const [form, setForm] = React.useState<Partial<Business>>({});
+  const [isWipeOpen, setIsWipeOpen] = React.useState(false);
+  const [confirmName, setConfirmName] = React.useState('');
+  const [wipeCatalog, setWipeCatalog] = React.useState(false);
+  const [wipeEmployees, setWipeEmployees] = React.useState(false);
+  const [wipeError, setWipeError] = React.useState<string | null>(null);
 
   React.useEffect(() => {
     if (business) setForm(business);
@@ -147,9 +162,10 @@ function BusinessTab() {
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Datos del negocio</CardTitle>
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Datos del negocio</CardTitle>
       </CardHeader>
       <CardContent>
         <form onSubmit={onSubmit} className="space-y-6">
@@ -281,6 +297,184 @@ function BusinessTab() {
         </form>
       </CardContent>
     </Card>
+
+    {/* Zona de peligro: Vaciar base de datos del negocio */}
+    {(user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN') && (
+      <>
+        <Card className="border-rose-500/30 bg-rose-500/[0.02]">
+          <CardHeader>
+            <div className="flex items-center gap-2 text-rose-600 dark:text-rose-400">
+              <AlertTriangle className="size-5 shrink-0" />
+              <CardTitle className="text-base text-rose-600 dark:text-rose-400">
+                Zona de Peligro: Vaciar base de datos
+              </CardTitle>
+            </div>
+            <CardDescription>
+              Elimina permanentemente órdenes, pagos, clientes, vehículos, gastos y liquidaciones acumuladas de este negocio para reiniciar la operación desde cero.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button
+              type="button"
+              variant="destructive"
+              className="bg-rose-600 hover:bg-rose-700 text-white font-semibold shadow-sm"
+              onClick={() => {
+                setIsWipeOpen(true);
+                setConfirmName('');
+                setWipeCatalog(false);
+                setWipeEmployees(false);
+                setWipeError(null);
+              }}
+            >
+              <Trash2 className="mr-2 size-4" />
+              Vaciar base de datos de esta empresa
+            </Button>
+          </CardContent>
+        </Card>
+
+        <Dialog open={isWipeOpen} onOpenChange={setIsWipeOpen}>
+          <DialogContent className="sm:max-w-md bg-card border-border text-foreground">
+            <DialogHeader>
+              <div className="flex items-center gap-3">
+                <div className="flex size-10 items-center justify-center rounded-full bg-rose-500/10 text-rose-600 dark:text-rose-400">
+                  <AlertTriangle className="size-5" />
+                </div>
+                <div>
+                  <DialogTitle className="text-lg font-bold text-foreground">
+                    Vaciar Base de Datos
+                  </DialogTitle>
+                  <DialogDescription className="text-xs text-muted-foreground">
+                    {business?.name}
+                  </DialogDescription>
+                </div>
+              </div>
+            </DialogHeader>
+
+            <div className="space-y-4 py-2">
+              <div className="rounded-lg bg-rose-500/10 p-3 text-xs text-rose-700 dark:text-rose-400 border border-rose-500/20 space-y-1.5">
+                <p className="font-semibold flex items-center gap-1.5">
+                  <AlertTriangle className="size-4 shrink-0" />
+                  ¡Atención! Acción destructiva e irreversible.
+                </p>
+                <p>
+                  Se eliminarán permanentemente todas las órdenes de servicio, detalles, pagos, evidencias fotográficas, clientes, vehículos, gastos, facturas electrónicas y liquidaciones de tu empresa.
+                </p>
+                <p className="text-[11px] opacity-90">
+                  La configuración de tu empresa y tus credenciales de acceso se mantendrán intactas.
+                </p>
+              </div>
+
+              {wipeError && (
+                <div className="rounded-lg bg-rose-500/15 p-2.5 text-xs text-rose-600 dark:text-rose-300 border border-rose-500/30">
+                  {wipeError}
+                </div>
+              )}
+
+              {/* Opciones avanzadas */}
+              <div className="space-y-3 rounded-lg border border-border p-3 bg-muted/30">
+                <p className="text-xs font-semibold text-foreground">Opciones adicionales:</p>
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label htmlFor="wipe-biz-catalog" className="text-xs cursor-pointer font-medium text-foreground">
+                      Eliminar servicios y promociones
+                    </Label>
+                    <p className="text-[11px] text-muted-foreground">
+                      Borra el catálogo de servicios creados.
+                    </p>
+                  </div>
+                  <Switch
+                    id="wipe-biz-catalog"
+                    checked={wipeCatalog}
+                    onCheckedChange={setWipeCatalog}
+                  />
+                </div>
+
+                <div className="flex items-center justify-between pt-2 border-t border-border">
+                  <div className="space-y-0.5">
+                    <Label htmlFor="wipe-biz-employees" className="text-xs cursor-pointer font-medium text-foreground">
+                      Eliminar empleados operativos
+                    </Label>
+                    <p className="text-[11px] text-muted-foreground">
+                      Borra los lavadores/operarios asignados (no borra tu usuario administrador).
+                    </p>
+                  </div>
+                  <Switch
+                    id="wipe-biz-employees"
+                    checked={wipeEmployees}
+                    onCheckedChange={setWipeEmployees}
+                  />
+                </div>
+              </div>
+
+              {/* Confirmación escribiendo el nombre */}
+              <div className="space-y-2">
+                <Label className="text-xs text-foreground">
+                  Para confirmar, escribe exactamente{' '}
+                  <span className="font-bold text-rose-600 dark:text-rose-400 select-all">
+                    {business?.name}
+                  </span>
+                  :
+                </Label>
+                <Input
+                  placeholder={business?.name}
+                  value={confirmName}
+                  onChange={(e) => setConfirmName(e.target.value)}
+                  className="text-sm bg-background border-border text-foreground"
+                  autoFocus
+                />
+              </div>
+            </div>
+
+            <DialogFooter className="gap-2 sm:gap-0">
+              <Button
+                type="button"
+                variant="outline"
+                disabled={wipeBusiness.isPending}
+                onClick={() => setIsWipeOpen(false)}
+              >
+                Cancelar
+              </Button>
+              <Button
+                type="button"
+                disabled={
+                  confirmName.trim().toLowerCase() !== business?.name?.trim().toLowerCase() ||
+                  wipeBusiness.isPending
+                }
+                onClick={async () => {
+                  if (!business) return;
+                  setWipeError(null);
+                  try {
+                    const res = await wipeBusiness.mutateAsync({
+                      confirmName,
+                      wipeCatalog,
+                      wipeEmployees,
+                    });
+                    toast.success(res.message || 'Base de datos vaciada con éxito');
+                    setIsWipeOpen(false);
+                  } catch (err: any) {
+                    setWipeError(err.message || 'Error al vaciar los datos');
+                  }
+                }}
+                className="bg-rose-600 font-semibold text-white hover:bg-rose-700 shadow-sm shadow-rose-600/30"
+              >
+                {wipeBusiness.isPending ? (
+                  <>
+                    <Loader2 className="mr-2 size-4 animate-spin" />
+                    Vaciando...
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="mr-2 size-4" />
+                    Vaciar Base de Datos
+                  </>
+                )}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </>
+    )}
+    </div>
   );
 }
 

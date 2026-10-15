@@ -16,13 +16,17 @@ import {
   Loader2,
   Sparkles,
   Lock,
+  Trash2,
+  AlertTriangle,
 } from 'lucide-react';
+import { toast } from 'sonner';
 import {
   useEstablishments,
   useCreateEstablishment,
   useUpdateEstablishment,
   useEstablishmentAdmins,
   useCreateEstablishmentAdmin,
+  useWipeEstablishment,
 } from '@/hooks/use-superadmin';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -57,6 +61,11 @@ export default function EstablecimientosPage() {
   const [editingEstablishment, setEditingEstablishment] = React.useState<Establishment | null>(null);
   const [managingAdminsEst, setManagingAdminsEst] = React.useState<Establishment | null>(null);
   const [isAddAdminOpen, setIsAddAdminOpen] = React.useState(false);
+  const [wipingEstablishment, setWipingEstablishment] = React.useState<Establishment | null>(null);
+  const [confirmName, setConfirmName] = React.useState('');
+  const [wipeCatalog, setWipeCatalog] = React.useState(false);
+  const [wipeEmployees, setWipeEmployees] = React.useState(false);
+  const [wipeError, setWipeError] = React.useState<string | null>(null);
 
   // Queries & Mutations
   const { data: establishments, isLoading } = useEstablishments({
@@ -68,6 +77,7 @@ export default function EstablecimientosPage() {
   const updateEstMutation = useUpdateEstablishment();
   const { data: admins, isLoading: isLoadingAdmins } = useEstablishmentAdmins(managingAdminsEst?.id);
   const createAdminMutation = useCreateEstablishmentAdmin();
+  const wipeEstMutation = useWipeEstablishment();
 
   // Abrir modal si viene query param ?action=create
   React.useEffect(() => {
@@ -368,6 +378,21 @@ export default function EstablecimientosPage() {
                   title="Editar datos"
                 >
                   <Edit2 className="size-3.5" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="size-8 text-rose-500 hover:text-rose-600 hover:bg-rose-500/10"
+                  onClick={() => {
+                    setWipingEstablishment(est);
+                    setConfirmName('');
+                    setWipeCatalog(false);
+                    setWipeEmployees(false);
+                    setWipeError(null);
+                  }}
+                  title="Vaciar base de datos"
+                >
+                  <Trash2 className="size-3.5" />
                 </Button>
               </div>
             </Card>
@@ -872,6 +897,162 @@ export default function EstablecimientosPage() {
           </DialogContent>
         </Dialog>
       )}
+
+      {/* ================================================================= */}
+      {/* Modal: VACIAR BASE DE DATOS DE LA EMPRESA                         */}
+      {/* ================================================================= */}
+      <Dialog
+        open={Boolean(wipingEstablishment)}
+        onOpenChange={(open) => {
+          if (!open) {
+            setWipingEstablishment(null);
+            setConfirmName('');
+            setWipeError(null);
+          }
+        }}
+      >
+        <DialogContent className="sm:max-w-md bg-card border-border text-foreground">
+          <DialogHeader>
+            <div className="flex items-center gap-3">
+              <div className="flex size-10 items-center justify-center rounded-full bg-rose-500/10 text-rose-600 dark:text-rose-400">
+                <AlertTriangle className="size-5" />
+              </div>
+              <div>
+                <DialogTitle className="text-lg font-bold text-foreground">
+                  Vaciar Base de Datos
+                </DialogTitle>
+                <DialogDescription className="text-xs text-muted-foreground">
+                  {wipingEstablishment?.name}
+                </DialogDescription>
+              </div>
+            </div>
+          </DialogHeader>
+
+          <div className="space-y-4 py-2">
+            <div className="rounded-lg bg-rose-500/10 p-3 text-xs text-rose-700 dark:text-rose-400 border border-rose-500/20 space-y-1.5">
+              <p className="font-semibold flex items-center gap-1.5">
+                <AlertTriangle className="size-4 shrink-0" />
+                ¡Atención! Acción destructiva e irreversible.
+              </p>
+              <p>
+                Se eliminarán permanentemente todas las órdenes de servicio, detalles, pagos, evidencias fotográficas, clientes, vehículos, gastos, facturas electrónicas y liquidaciones de esta empresa.
+              </p>
+              <p className="text-[11px] opacity-90">
+                El establecimiento y las cuentas de acceso de los administradores se mantendrán intactos para que puedan seguir operando.
+              </p>
+            </div>
+
+            {wipeError && (
+              <div className="rounded-lg bg-rose-500/15 p-2.5 text-xs text-rose-600 dark:text-rose-300 border border-rose-500/30">
+                {wipeError}
+              </div>
+            )}
+
+            {/* Opciones avanzadas */}
+            <div className="space-y-3 rounded-lg border border-border p-3 bg-muted/30">
+              <p className="text-xs font-semibold text-foreground">Opciones adicionales:</p>
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label htmlFor="wipe-catalog" className="text-xs cursor-pointer font-medium text-foreground">
+                    Eliminar servicios y promociones
+                  </Label>
+                  <p className="text-[11px] text-muted-foreground">
+                    Borra el catálogo de servicios creados para este lavadero.
+                  </p>
+                </div>
+                <Switch
+                  id="wipe-catalog"
+                  checked={wipeCatalog}
+                  onCheckedChange={setWipeCatalog}
+                />
+              </div>
+
+              <div className="flex items-center justify-between pt-2 border-t border-border">
+                <div className="space-y-0.5">
+                  <Label htmlFor="wipe-employees" className="text-xs cursor-pointer font-medium text-foreground">
+                    Eliminar empleados operativos
+                  </Label>
+                  <p className="text-[11px] text-muted-foreground">
+                    Borra los lavadores/operarios asignados (no borra usuarios admin).
+                  </p>
+                </div>
+                <Switch
+                  id="wipe-employees"
+                  checked={wipeEmployees}
+                  onCheckedChange={setWipeEmployees}
+                />
+              </div>
+            </div>
+
+            {/* Confirmación escribiendo el nombre */}
+            <div className="space-y-2">
+              <Label className="text-xs text-foreground">
+                Para confirmar, escribe exactamente{' '}
+                <span className="font-bold text-rose-600 dark:text-rose-400 select-all">
+                  {wipingEstablishment?.name}
+                </span>
+                :
+              </Label>
+              <Input
+                placeholder={wipingEstablishment?.name}
+                value={confirmName}
+                onChange={(e) => setConfirmName(e.target.value)}
+                className="text-sm bg-background border-border text-foreground"
+                autoFocus
+              />
+            </div>
+          </div>
+
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button
+              type="button"
+              variant="outline"
+              disabled={wipeEstMutation.isPending}
+              onClick={() => setWipingEstablishment(null)}
+            >
+              Cancelar
+            </Button>
+            <Button
+              type="button"
+              disabled={
+                confirmName.trim().toLowerCase() !== wipingEstablishment?.name.trim().toLowerCase() ||
+                wipeEstMutation.isPending
+              }
+              onClick={async () => {
+                if (!wipingEstablishment) return;
+                setWipeError(null);
+                try {
+                  const res = await wipeEstMutation.mutateAsync({
+                    id: wipingEstablishment.id,
+                    data: {
+                      confirmName,
+                      wipeCatalog,
+                      wipeEmployees,
+                    },
+                  });
+                  toast.success(res.message || 'Base de datos de la empresa vaciada con éxito');
+                  setWipingEstablishment(null);
+                } catch (err: any) {
+                  setWipeError(err.message || 'Error al vaciar los datos');
+                }
+              }}
+              className="bg-rose-600 font-semibold text-white hover:bg-rose-700 shadow-sm shadow-rose-600/30"
+            >
+              {wipeEstMutation.isPending ? (
+                <>
+                  <Loader2 className="mr-2 size-4 animate-spin" />
+                  Vaciando...
+                </>
+              ) : (
+                <>
+                  <Trash2 className="mr-2 size-4" />
+                  Vaciar Base de Datos
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -126,3 +126,22 @@ export function useUpdatePlatformUser() {
     },
   });
 }
+
+export function useWipeEstablishment() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      id,
+      data,
+    }: {
+      id: string;
+      data: { confirmName: string; wipeCatalog?: boolean; wipeEmployees?: boolean };
+    }) => api.post<{ success: boolean; message: string; result: any }>(`/api/superadmin/establishments/${id}/wipe`, data),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: superAdminKeys.establishments() });
+      queryClient.invalidateQueries({ queryKey: superAdminKeys.establishment(variables.id) });
+      queryClient.invalidateQueries({ queryKey: superAdminKeys.stats() });
+    },
+  });
+}
+
