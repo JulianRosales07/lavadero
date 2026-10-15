@@ -485,8 +485,21 @@ export interface SalesReport {
     tips: number;
     total: number;
     averageTicket: number;
+    companyGross?: number;
+    employeeCommission?: number;
     companyTotal?: number;
     commissionTotal?: number;
+    totalExpenses?: number;
+    suppliesExpenses?: number;
+    otherExpenses?: number;
+    companyNet?: number;
+  };
+  expenses?: {
+    total: number;
+    supplies: number;
+    other: number;
+    count: number;
+    items?: Expense[];
   };
   byDay: {
     day: string;

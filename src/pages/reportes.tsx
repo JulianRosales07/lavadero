@@ -1,17 +1,25 @@
 'use client';
 
 import * as React from 'react';
+import { Link } from 'react-router-dom';
 import {
   BarChart3,
   Building2,
+  CheckCircle2,
   CircleDollarSign,
+  ExternalLink,
   HandCoins,
   Receipt,
+  Scale,
+  ShieldCheck,
+  ShoppingBag,
   Sparkles,
+  TrendingDown,
   TrendingUp,
   Users,
   Wallet,
 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/shared/empty-state';
 import { PageHeader } from '@/components/shared/page-header';
 import { RangeFilter, type RangeValue } from '@/components/shared/range-filter';
@@ -86,7 +94,7 @@ export default function ReportsPage() {
             <TabsList className="inline-flex w-max h-auto justify-start gap-1 p-1">
               <TabsTrigger value="ventas" className="text-xs sm:text-sm">
                 <CircleDollarSign className="size-4" />
-                Ventas
+                Ganancias y Ventas
               </TabsTrigger>
               <TabsTrigger value="servicios" className="text-xs sm:text-sm">
                 <Sparkles className="size-4" />
@@ -150,9 +158,30 @@ function SalesTab({ range }: { range: RangeValue }) {
   const { data, isLoading } = useSalesReport(range);
   const summary = data?.summary;
 
-  const netSales = Math.max(0, (summary?.total ?? 0) - (summary?.tips ?? 0));
-  const companyTotal = summary?.companyTotal ?? Math.round(netSales * 0.5);
-  const commissionTotal = summary?.commissionTotal ?? Math.round(netSales * 0.5);
+  const totalSales = Number(summary?.total ?? 0);
+  const tips = Number(summary?.tips ?? 0);
+  const netSales = Math.max(0, totalSales - tips);
+
+  // 50% empresa y 50% empleados (sobre ingresos de servicios)
+  const companyGross = summary?.companyGross ?? summary?.companyTotal ?? Math.round(netSales * 0.5);
+  const employeeCommission =
+    summary?.employeeCommission ?? summary?.commissionTotal ?? Math.round(netSales * 0.5);
+
+  // Gastos y compras
+  const totalExpenses = Number(summary?.totalExpenses ?? data?.expenses?.total ?? 0);
+  const suppliesExpenses = Number(summary?.suppliesExpenses ?? data?.expenses?.supplies ?? 0);
+  const otherExpenses = Number(summary?.otherExpenses ?? data?.expenses?.other ?? 0);
+
+  // Ganancia neta real de la empresa (gastos se descuentan solo de la empresa, no de los empleados)
+  const companyNet = summary?.companyNet ?? companyGross - totalExpenses;
+
+  const expensesItems = data?.expenses?.items ?? [];
+
+  // Porcentajes para barra visual de distribución
+  const totalForBar = Math.max(1, totalSales);
+  const empPercent = Math.min(100, Math.round((employeeCommission / totalForBar) * 100));
+  const expPercent = Math.min(100 - empPercent, Math.round((totalExpenses / totalForBar) * 100));
+  const netPercent = Math.max(0, 100 - empPercent - expPercent);
 
   const chartData = (data?.byDay ?? []).map((day) => ({
     label: formatDate(day.day, 'dd MMM'),
@@ -164,41 +193,214 @@ function SalesTab({ range }: { range: RangeValue }) {
 
   return (
     <div className="space-y-6">
+      {/* ── BALANCE FINANCIERO Y DISTRIBUCIÓN DE GANANCIAS ── */}
+      <Card className="border-primary/20 bg-gradient-to-br from-card via-card to-primary/5 shadow-soft">
+        <CardHeader className="pb-3 border-b border-border/50">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div className="flex items-center gap-2.5">
+              <span className="grid size-9 place-items-center rounded-lg bg-primary/10 text-primary">
+                <Scale className="size-5" />
+              </span>
+              <div>
+                <CardTitle className="text-base sm:text-lg">
+                  Estado de Resultados y Ganancias
+                </CardTitle>
+                <p className="text-xs text-muted-foreground">
+                  Desglose exacto de ingresos del lavadero. Las compras y gastos se descuentan
+                  únicamente de la empresa.
+                </p>
+              </div>
+            </div>
+            <Badge
+              variant="outline"
+              className="w-fit text-xs bg-background/80 border-emerald-500/30 text-emerald-600 dark:text-emerald-400 gap-1.5"
+            >
+              <ShieldCheck className="size-3.5" />
+              Comisiones 50% de empleados protegidas
+            </Badge>
+          </div>
+        </CardHeader>
+
+        <CardContent className="p-4 sm:p-6 space-y-6">
+          {/* Bloques de la distribución */}
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {/* 1. Facturado Bruto */}
+            <div className="rounded-xl border border-border/70 bg-card/60 p-4 space-y-1.5">
+              <div className="flex items-center justify-between text-xs text-muted-foreground">
+                <span>Ventas Brutas Totales</span>
+                <CircleDollarSign className="size-4 text-primary" />
+              </div>
+              <p className="text-2xl font-bold tracking-tight">{money(totalSales)}</p>
+              <p className="text-[11px] text-muted-foreground">
+                {summary?.ordersCount ?? 0} órdenes completadas en el período
+              </p>
+            </div>
+
+            {/* 2. Empleados 50% */}
+            <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-4 space-y-1.5">
+              <div className="flex items-center justify-between text-xs font-medium text-amber-700 dark:text-amber-400">
+                <span>Para Empleados (50%)</span>
+                <Users className="size-4 text-amber-600" />
+              </div>
+              <p className="text-2xl font-bold tracking-tight text-amber-700 dark:text-amber-400">
+                {money(employeeCommission)}
+              </p>
+              <div className="flex items-center gap-1 text-[11px] text-amber-600 dark:text-amber-400">
+                <CheckCircle2 className="size-3" />
+                <span>Íntegro · Sin deducción de compras</span>
+              </div>
+            </div>
+
+            {/* 3. Gastos y Compras */}
+            <div className="rounded-xl border border-rose-500/20 bg-rose-500/5 p-4 space-y-1.5">
+              <div className="flex items-center justify-between text-xs font-medium text-rose-700 dark:text-rose-400">
+                <span>Compras y Gastos Empresa</span>
+                <ShoppingBag className="size-4 text-rose-600" />
+              </div>
+              <p className="text-2xl font-bold tracking-tight text-rose-700 dark:text-rose-400">
+                - {money(totalExpenses)}
+              </p>
+              <p className="text-[11px] text-muted-foreground">
+                {suppliesExpenses > 0 ? `${money(suppliesExpenses)} insumos` : '0 insumos'}
+                {otherExpenses > 0 ? ` · ${money(otherExpenses)} otros` : ''}
+              </p>
+            </div>
+
+            {/* 4. Ganancia NETA Empresa */}
+            <div
+              className={cn(
+                'rounded-xl border p-4 space-y-1.5',
+                companyNet >= 0
+                  ? 'border-emerald-500/30 bg-emerald-500/10'
+                  : 'border-rose-500/30 bg-rose-500/10',
+              )}
+            >
+              <div className="flex items-center justify-between text-xs font-medium">
+                <span
+                  className={
+                    companyNet >= 0
+                      ? 'text-emerald-700 dark:text-emerald-300'
+                      : 'text-rose-700 dark:text-rose-300'
+                  }
+                >
+                  Ganancia NETA Empresa
+                </span>
+                <Building2
+                  className={
+                    companyNet >= 0
+                      ? 'size-4 text-emerald-600 dark:text-emerald-400'
+                      : 'size-4 text-rose-600'
+                  }
+                />
+              </div>
+              <p
+                className={cn(
+                  'text-2xl font-bold tracking-tight',
+                  companyNet >= 0
+                    ? 'text-emerald-700 dark:text-emerald-300'
+                    : 'text-rose-700 dark:text-rose-300',
+                )}
+              >
+                {money(companyNet)}
+              </p>
+              <p className="text-[11px] text-muted-foreground truncate">
+                {money(companyGross)} bruto - {money(totalExpenses)} gastos
+              </p>
+            </div>
+          </div>
+
+          {/* Barra de Distribución Visual */}
+          <div className="space-y-2 pt-1">
+            <div className="flex items-center justify-between text-xs text-muted-foreground">
+              <span className="font-medium text-foreground">Distribución de Ingresos del Período</span>
+              <span>100% de Ventas Netas</span>
+            </div>
+            <div className="flex h-3 w-full overflow-hidden rounded-full bg-muted">
+              <div
+                style={{ width: `${empPercent}%` }}
+                className="bg-amber-500 transition-all"
+                title={`Empleados: ${empPercent}% (${money(employeeCommission)})`}
+              />
+              <div
+                style={{ width: `${expPercent}%` }}
+                className="bg-rose-500 transition-all"
+                title={`Gastos/Compras: ${expPercent}% (${money(totalExpenses)})`}
+              />
+              <div
+                style={{ width: `${netPercent}%` }}
+                className="bg-emerald-500 transition-all"
+                title={`Ganancia Neta Empresa: ${netPercent}% (${money(companyNet)})`}
+              />
+            </div>
+            <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 text-xs text-muted-foreground pt-0.5">
+              <div className="flex items-center gap-1.5">
+                <span className="size-2.5 rounded-full bg-amber-500" />
+                <span>
+                  Empleados (50%): <strong className="text-foreground">{money(employeeCommission)}</strong>
+                </span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="size-2.5 rounded-full bg-rose-500" />
+                <span>
+                  Compras y Gastos: <strong className="text-foreground">{money(totalExpenses)}</strong>
+                </span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="size-2.5 rounded-full bg-emerald-500" />
+                <span>
+                  Utilidad Neta Empresa: <strong className="text-foreground">{money(companyNet)}</strong>
+                </span>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* ── TARJETAS DE INDICADORES PRINCIPALES ── */}
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <StatCard
-          label="Ganancia Empresa (50%)"
-          value={money(companyTotal)}
+          label="Ganancia NETA Empresa"
+          value={money(companyNet)}
           icon={Building2}
-          tone="emerald"
+          tone={companyNet >= 0 ? 'emerald' : 'rose'}
           loading={isLoading}
-          hint="Ingreso neto del lavadero"
+          hint={totalExpenses > 0 ? `Ya deducidos ${money(totalExpenses)} en compras/gastos` : 'Sin compras registradas'}
         />
         <StatCard
           label="Comisiones Empleados (50%)"
-          value={money(commissionTotal)}
+          value={money(employeeCommission)}
           icon={Users}
           tone="amber"
           loading={isLoading}
           hint={
             (summary?.tips ?? 0) > 0
-              ? `+ ${money(summary?.tips)} en propinas`
-              : '50% a liquidar al equipo'
+              ? `+ ${money(summary?.tips)} en propinas del período`
+              : '50% íntegro a liquidar al equipo'
           }
         />
         <StatCard
-          label="Total facturado (Bruto)"
-          value={money(summary?.total)}
+          label="Ingresos Brutos Empresa (50%)"
+          value={money(companyGross)}
           icon={CircleDollarSign}
-          tone="primary"
+          tone="sky"
           loading={isLoading}
-          hint="100% cobrado en órdenes"
+          hint="50% de las ventas antes de compras"
         />
         <StatCard
-          label="Órdenes finalizadas"
-          value={summary?.ordersCount ?? 0}
-          icon={Receipt}
+          label="Compras y Gastos Empresa"
+          value={money(totalExpenses)}
+          icon={ShoppingBag}
+          tone="rose"
           loading={isLoading}
-          hint="Completadas en el período"
+          hint={suppliesExpenses > 0 ? `${money(suppliesExpenses)} en compras de insumos` : 'Egresos del período'}
+        />
+        <StatCard
+          label="Total Facturado Bruto"
+          value={money(summary?.total)}
+          icon={Receipt}
+          tone="primary"
+          loading={isLoading}
+          hint={`${summary?.ordersCount ?? 0} órdenes completadas`}
         />
         <StatCard
           label="Ticket promedio"
@@ -206,21 +408,82 @@ function SalesTab({ range }: { range: RangeValue }) {
           icon={TrendingUp}
           tone="sky"
           loading={isLoading}
-          hint="Promedio por orden"
-        />
-        <StatCard
-          label="Descuentos aplicados"
-          value={money((summary?.discountTotal ?? 0) + (summary?.promotionTotal ?? 0))}
-          icon={HandCoins}
-          tone="rose"
-          loading={isLoading}
-          hint="Promociones y rebajas"
+          hint="Promedio cobrado por vehículo"
         />
       </section>
 
+      {/* ── DETALLE DE COMPRAS Y GASTOS DEL PERÍODO ── */}
+      <Card>
+        <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3">
+          <div>
+            <CardTitle className="text-base flex items-center gap-2">
+              <ShoppingBag className="size-4 text-rose-500" />
+              Compras e Insumos del Período ({expensesItems.length})
+            </CardTitle>
+            <p className="text-xs text-muted-foreground">
+              Descontados en su totalidad de la parte de la empresa (no afecta a los empleados).
+            </p>
+          </div>
+          <Button variant="outline" size="sm" asChild>
+            <Link to="/compras" className="gap-1.5">
+              <span>Gestionar compras</span>
+              <ExternalLink className="size-3.5" />
+            </Link>
+          </Button>
+        </CardHeader>
+        <CardContent className="px-0 pb-0">
+          {expensesItems.length === 0 ? (
+            <p className="p-5 text-center text-xs text-muted-foreground">
+              No hay compras ni gastos registrados en este rango de fechas. Puedes registrarlos en el módulo de Compras.
+            </p>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Fecha</TableHead>
+                  <TableHead>Concepto</TableHead>
+                  <TableHead>Proveedor</TableHead>
+                  <TableHead>Categoría</TableHead>
+                  <TableHead className="text-right">Monto</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {expensesItems.slice(0, 10).map((expense) => (
+                  <TableRow key={expense.id}>
+                    <TableCell className="text-xs text-muted-foreground">
+                      {formatDate(expense.spentAt)}
+                    </TableCell>
+                    <TableCell className="font-medium text-xs">
+                      {expense.concept}
+                      {expense.notes ? (
+                        <span className="block text-[11px] text-muted-foreground font-normal">
+                          {expense.notes}
+                        </span>
+                      ) : null}
+                    </TableCell>
+                    <TableCell className="text-xs text-muted-foreground">
+                      {expense.supplier || '—'}
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className="text-[10px] py-0">
+                        {expense.category === 'SUPPLIES' ? 'Insumos / Compras' : expense.category}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-right font-medium text-xs text-rose-600 dark:text-rose-400 tabular-nums">
+                      - {money(expense.amount)}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* ── EVOLUCIÓN DE VENTAS ── */}
       <Card>
         <CardHeader>
-          <CardTitle>Evolución de ventas</CardTitle>
+          <CardTitle>Evolución de ventas y ganancias</CardTitle>
         </CardHeader>
         <CardContent>
           {isLoading ? (
@@ -237,6 +500,7 @@ function SalesTab({ range }: { range: RangeValue }) {
         </CardContent>
       </Card>
 
+      {/* ── TABLAS DE VEHÍCULOS Y DETALLE DIARIO ── */}
       <div className="grid gap-6 lg:grid-cols-2">
         <Card>
           <CardHeader>
@@ -255,23 +519,26 @@ function SalesTab({ range }: { range: RangeValue }) {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {(data?.byVehicleType ?? []).map((row) => (
-                  <TableRow key={row.vehicleType}>
-                    <TableCell>
-                      <span className="flex items-center gap-2">
-                        <span aria-hidden>{VEHICLE_TYPE_META[row.vehicleType as VehicleType].icon}</span>
-                        {VEHICLE_TYPE_META[row.vehicleType as VehicleType].label}
-                      </span>
-                    </TableCell>
-                    <TableCell className="text-center tabular-nums">{row.ordersCount}</TableCell>
-                    <TableCell className="text-right font-medium text-emerald-600 dark:text-emerald-400 tabular-nums">
-                      {money(row.companyTotal ?? Math.round(row.total * 0.5))}
-                    </TableCell>
-                    <TableCell className="text-right font-medium tabular-nums">
-                      {money(row.total)}
-                    </TableCell>
-                  </TableRow>
-                ))}
+                {(data?.byVehicleType ?? []).map((row) => {
+                  const meta = VEHICLE_TYPE_META[row.vehicleType as VehicleType];
+                  return (
+                    <TableRow key={row.vehicleType}>
+                      <TableCell>
+                        <span className="flex items-center gap-2">
+                          <span aria-hidden>{meta?.icon ?? '🚗'}</span>
+                          {meta?.label ?? row.vehicleType}
+                        </span>
+                      </TableCell>
+                      <TableCell className="text-center tabular-nums">{row.ordersCount}</TableCell>
+                      <TableCell className="text-right font-medium text-emerald-600 dark:text-emerald-400 tabular-nums">
+                        {money(row.companyTotal ?? Math.round(row.total * 0.5))}
+                      </TableCell>
+                      <TableCell className="text-right font-medium tabular-nums">
+                        {money(row.total)}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           </CardContent>
