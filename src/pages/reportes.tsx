@@ -3,6 +3,7 @@
 import * as React from 'react';
 import {
   BarChart3,
+  Building2,
   CircleDollarSign,
   HandCoins,
   Receipt,
@@ -149,34 +150,63 @@ function SalesTab({ range }: { range: RangeValue }) {
   const { data, isLoading } = useSalesReport(range);
   const summary = data?.summary;
 
+  const netSales = Math.max(0, (summary?.total ?? 0) - (summary?.tips ?? 0));
+  const companyTotal = summary?.companyTotal ?? Math.round(netSales * 0.5);
+  const commissionTotal = summary?.commissionTotal ?? Math.round(netSales * 0.5);
+
   const chartData = (data?.byDay ?? []).map((day) => ({
     label: formatDate(day.day, 'dd MMM'),
-    ventas: day.sales / 100,
-    propinas: day.tips / 100,
+    ventas: day.sales,
+    empresa: day.companySales ?? Math.round(day.sales * 0.5),
+    empleados: day.employeeCommission ?? Math.round(day.sales * 0.5),
+    propinas: day.tips,
   }));
 
   return (
     <div className="space-y-6">
-      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <StatCard
-          label="Total facturado"
+          label="Ganancia Empresa (50%)"
+          value={money(companyTotal)}
+          icon={Building2}
+          tone="emerald"
+          loading={isLoading}
+          hint="Ingreso neto del lavadero"
+        />
+        <StatCard
+          label="Comisiones Empleados (50%)"
+          value={money(commissionTotal)}
+          icon={Users}
+          tone="amber"
+          loading={isLoading}
+          hint={
+            (summary?.tips ?? 0) > 0
+              ? `+ ${money(summary?.tips)} en propinas`
+              : '50% a liquidar al equipo'
+          }
+        />
+        <StatCard
+          label="Total facturado (Bruto)"
           value={money(summary?.total)}
           icon={CircleDollarSign}
           tone="primary"
           loading={isLoading}
+          hint="100% cobrado en órdenes"
         />
         <StatCard
           label="Órdenes finalizadas"
           value={summary?.ordersCount ?? 0}
           icon={Receipt}
           loading={isLoading}
+          hint="Completadas en el período"
         />
         <StatCard
           label="Ticket promedio"
           value={money(summary?.averageTicket)}
           icon={TrendingUp}
-          tone="emerald"
+          tone="sky"
           loading={isLoading}
+          hint="Promedio por orden"
         />
         <StatCard
           label="Descuentos aplicados"
@@ -184,6 +214,7 @@ function SalesTab({ range }: { range: RangeValue }) {
           icon={HandCoins}
           tone="rose"
           loading={isLoading}
+          hint="Promociones y rebajas"
         />
       </section>
 
@@ -217,7 +248,10 @@ function SalesTab({ range }: { range: RangeValue }) {
                 <TableRow>
                   <TableHead>Tipo</TableHead>
                   <TableHead className="text-center">Órdenes</TableHead>
-                  <TableHead className="text-right">Total</TableHead>
+                  <TableHead className="text-right text-emerald-600 dark:text-emerald-400">
+                    Empresa (50%)
+                  </TableHead>
+                  <TableHead className="text-right">Total Facturado</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -230,6 +264,9 @@ function SalesTab({ range }: { range: RangeValue }) {
                       </span>
                     </TableCell>
                     <TableCell className="text-center tabular-nums">{row.ordersCount}</TableCell>
+                    <TableCell className="text-right font-medium text-emerald-600 dark:text-emerald-400 tabular-nums">
+                      {money(row.companyTotal ?? Math.round(row.total * 0.5))}
+                    </TableCell>
                     <TableCell className="text-right font-medium tabular-nums">
                       {money(row.total)}
                     </TableCell>
@@ -250,16 +287,28 @@ function SalesTab({ range }: { range: RangeValue }) {
                 <TableRow>
                   <TableHead>Día</TableHead>
                   <TableHead className="text-center">Órdenes</TableHead>
-                  <TableHead className="text-right">Ventas</TableHead>
+                  <TableHead className="text-right">Total</TableHead>
+                  <TableHead className="text-right text-emerald-600 dark:text-emerald-400">
+                    Empresa (50%)
+                  </TableHead>
+                  <TableHead className="text-right text-amber-600 dark:text-amber-400">
+                    Empleados (50%)
+                  </TableHead>
                   <TableHead className="text-right">Propinas</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {(data?.byDay ?? []).map((row) => (
                   <TableRow key={row.day}>
-                    <TableCell>{formatDate(row.day)}</TableCell>
+                    <TableCell className="text-sm">{formatDate(row.day)}</TableCell>
                     <TableCell className="text-center tabular-nums">{row.ordersCount}</TableCell>
-                    <TableCell className="text-right tabular-nums">{money(row.sales)}</TableCell>
+                    <TableCell className="text-right font-medium tabular-nums">{money(row.sales)}</TableCell>
+                    <TableCell className="text-right font-medium text-emerald-600 dark:text-emerald-400 tabular-nums">
+                      {money(row.companySales ?? Math.round(row.sales * 0.5))}
+                    </TableCell>
+                    <TableCell className="text-right font-medium text-amber-600 dark:text-amber-400 tabular-nums">
+                      {money(row.employeeCommission ?? Math.round(row.sales * 0.5))}
+                    </TableCell>
                     <TableCell className="text-right tabular-nums">{money(row.tips)}</TableCell>
                   </TableRow>
                 ))}
@@ -555,7 +604,7 @@ function PaymentsTab({ range }: { range: RangeValue }) {
 
   const chartData = rows.map((row) => ({
     name: PAYMENT_METHOD_META[row.method as PaymentMethod].label,
-    value: row.amount / 100,
+    value: row.amount,
   }));
 
   return (
@@ -650,7 +699,9 @@ function EmployeesTab({ range }: { range: RangeValue }) {
                 <TableHead className="hidden md:table-cell text-center">Servicios</TableHead>
                 <TableHead className="hidden lg:table-cell text-center">Tiempo prom.</TableHead>
                 <TableHead className="text-right">Propinas</TableHead>
-                <TableHead className="text-right">Ventas</TableHead>
+                <TableHead className="text-right text-amber-600 dark:text-amber-400">Comisión (50%)</TableHead>
+                <TableHead className="text-right text-emerald-600 dark:text-emerald-400">Empresa (50%)</TableHead>
+                <TableHead className="text-right">Total Facturado</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -675,6 +726,12 @@ function EmployeesTab({ range }: { range: RangeValue }) {
                     {row.ordersCount > 0 ? formatMinutes(row.avgMinutes) : '—'}
                   </TableCell>
                   <TableCell className="text-right tabular-nums">{money(row.tips)}</TableCell>
+                  <TableCell className="text-right font-medium text-amber-600 dark:text-amber-400 tabular-nums">
+                    {money(Math.round(row.sales * 0.5))}
+                  </TableCell>
+                  <TableCell className="text-right font-medium text-emerald-600 dark:text-emerald-400 tabular-nums">
+                    {money(Math.round(row.sales * 0.5))}
+                  </TableCell>
                   <TableCell className="text-right font-medium tabular-nums">
                     {money(row.sales)}
                   </TableCell>

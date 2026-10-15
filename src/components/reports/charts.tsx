@@ -34,15 +34,24 @@ const tooltipStyle = { borderRadius: 12, fontSize: 12 } as const;
 export function SalesTrendChart({
   data,
 }: {
-  data: { label: string; ventas: number; propinas: number }[];
+  data: { label: string; ventas: number; empresa?: number; empleados?: number; propinas: number }[];
 }) {
+  const showDots = data.length === 1;
+
   return (
     <div className="h-64 w-full sm:h-72">
       <ResponsiveContainer width="100%" height="100%">
-        <LineChart data={data} margin={{ top: 8, right: 8, left: -12, bottom: 0 }}>
+        <LineChart data={data} margin={{ top: 8, right: 8, left: -4, bottom: 0 }}>
           <CartesianGrid strokeDasharray="3 3" className="stroke-border" vertical={false} />
           <XAxis dataKey="label" {...axisProps} />
-          <YAxis {...axisProps} />
+          <YAxis
+            {...axisProps}
+            tickFormatter={(val: number) => {
+              if (val >= 1_000_000) return `$${(val / 1_000_000).toFixed(1)}M`;
+              if (val >= 1_000) return `$${Math.round(val / 1_000)}k`;
+              return `$${val}`;
+            }}
+          />
           <ChartTooltip
             contentStyle={tooltipStyle}
             formatter={(value: number, name) => [money(value), name]}
@@ -50,10 +59,19 @@ export function SalesTrendChart({
           <Line
             type="monotone"
             dataKey="ventas"
-            name="Ventas"
+            name="Total Facturado"
             stroke={CHART_COLORS[0]}
             strokeWidth={2.5}
-            dot={false}
+            dot={showDots}
+          />
+          <Line
+            type="monotone"
+            dataKey="empresa"
+            name="Empresa (50%)"
+            stroke={CHART_COLORS[2]}
+            strokeWidth={2}
+            strokeDasharray="4 4"
+            dot={showDots}
           />
           <Line
             type="monotone"
@@ -61,7 +79,7 @@ export function SalesTrendChart({
             name="Propinas"
             stroke={CHART_COLORS[3]}
             strokeWidth={2}
-            dot={false}
+            dot={showDots}
           />
         </LineChart>
       </ResponsiveContainer>

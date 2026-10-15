@@ -435,15 +435,25 @@ export interface SalesReport {
     tips: number;
     total: number;
     averageTicket: number;
+    companyTotal?: number;
+    commissionTotal?: number;
   };
   byDay: {
     day: string;
     ordersCount: number;
     sales: number;
+    companySales?: number;
+    employeeCommission?: number;
     tips: number;
     total: number;
   }[];
-  byVehicleType: { vehicleType: VehicleType; ordersCount: number; total: number }[];
+  byVehicleType: {
+    vehicleType: VehicleType;
+    ordersCount: number;
+    total: number;
+    companyTotal?: number;
+    commissionTotal?: number;
+  }[];
 }
 
 export interface ServicesReport {
