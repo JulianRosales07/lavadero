@@ -172,7 +172,7 @@ function App() {
           <Route
             path="compras"
             element={
-              <ProtectedRoute allowedRoles={['ADMIN']}>
+              <ProtectedRoute allowedRoles={['ADMIN', 'SUPER_ADMIN']}>
                 <ComprasPage />
               </ProtectedRoute>
             }
@@ -180,7 +180,7 @@ function App() {
           <Route
             path="pagos-empleados"
             element={
-              <ProtectedRoute allowedRoles={['ADMIN']}>
+              <ProtectedRoute allowedRoles={['ADMIN', 'SUPER_ADMIN']}>
                 <PagosEmpleadosPage />
               </ProtectedRoute>
             }

@@ -35,9 +35,9 @@ export const NAV_SECTIONS: NavSection[] = [
       { href: '/dashboard', label: 'Resumen', hint: 'Dashboard', icon: LayoutDashboard, roles: ['ADMIN', 'OPERATOR'] },
       { href: '/ordenes', label: 'Órdenes', icon: ClipboardList, roles: ['ADMIN', 'OPERATOR'] },
       { href: '/clientes', label: 'Clientes', icon: Users, roles: ['ADMIN'] },
-      { href: '/caja', label: 'Caja', icon: Wallet, roles: ['ADMIN'] },
-      { href: '/compras', label: 'Compras', hint: 'Insumos y gastos', icon: ShoppingBag, roles: ['ADMIN'] },
-      { href: '/pagos-empleados', label: 'Pagos Empleados', hint: 'Nómina y comisiones', icon: HandCoins, roles: ['ADMIN'] },
+      { href: '/caja', label: 'Caja', icon: Wallet, roles: ['ADMIN', 'SUPER_ADMIN'] },
+      { href: '/compras', label: 'Compras', hint: 'Insumos y gastos', icon: ShoppingBag, roles: ['ADMIN', 'SUPER_ADMIN'] },
+      { href: '/pagos-empleados', label: 'Pagos Empleados', hint: 'Nómina y comisiones', icon: HandCoins, roles: ['ADMIN', 'SUPER_ADMIN'] },
     ],
   },
   {
