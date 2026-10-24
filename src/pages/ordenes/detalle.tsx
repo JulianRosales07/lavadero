@@ -29,6 +29,8 @@ import {
   type DraftEvidence,
 } from '@/components/orders/evidence-uploader';
 import { TicketDialog } from '@/components/orders/ticket-dialog';
+import { FormlySurveyCard } from '@/components/orders/formly-survey-card';
+import { useOrderSurvey } from '@/hooks/use-formly';
 import { ConfirmDialog } from '@/components/shared/confirm-dialog';
 import { PageHeader } from '@/components/shared/page-header';
 import { StatusBadge } from '@/components/shared/status-badge';
@@ -82,6 +84,7 @@ export default function OrderDetailPage() {
   const isOperator = user?.role === 'OPERATOR';
 
   const { data: order, isLoading } = useOrder(id ?? null);
+  const { data: orderSurvey } = useOrderSurvey(id ?? '', Boolean(id));
   const { data: employees } = useEmployees(true);
   const { data: business } = useBusiness();
   const issueInvoice = useIssueElectronicInvoice();
@@ -183,9 +186,11 @@ export default function OrderDetailPage() {
       toast.error('El cliente no tiene teléfono registrado');
       return;
     }
+    const surveyLink = orderSurvey?.shareUrl || orderSurvey?.publicUrl;
+    const surveyPart = surveyLink ? `\n\n⭐ Califícanos aquí: ${surveyLink}` : '';
     const text = `Hola ${order.customer.firstName}, tu vehículo ${order.vehicle.plate} está ${
       order.status === 'READY' ? 'listo para entregar' : 'en proceso'
-    }. Orden ${order.number}.`;
+    }. Orden ${order.number}.${surveyPart}`;
     window.open(
       `https://wa.me/${phone}?text=${encodeURIComponent(text)}`,
       '_blank',
@@ -532,6 +537,15 @@ export default function OrderDetailPage() {
           {order.status === 'FINISHED' && !isOperator ? (
             <ElectronicInvoiceCard orderId={order.id} customerId={order.customer.id} />
           ) : null}
+
+          {/* Encuesta de Satisfacción Formly */}
+          <FormlySurveyCard
+            orderId={order.id}
+            orderNumber={order.number}
+            customerPhone={order.customer.phone}
+            customerName={fullName(order.customer.firstName, order.customer.lastName)}
+            orderStatus={order.status}
+          />
 
           {/* Totales */}
           <Card>

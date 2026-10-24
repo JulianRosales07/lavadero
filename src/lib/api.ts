@@ -96,6 +96,18 @@ async function request<T>(
   }
 
   if (response.status === 401 && typeof window !== 'undefined') {
+    // Si la llamada fue a una integración externa (ej. Formly o Factus), NO cerrar sesión del usuario
+    if (path.includes('/formly') || path.includes('/electronic-invoices')) {
+      const errText = await response.text().catch(() => '');
+      let errMsg = 'Error de autenticación con el servicio externo';
+      try {
+        const parsed = JSON.parse(errText);
+        if (parsed?.error) errMsg = parsed.error;
+        else if (parsed?.message) errMsg = parsed.message;
+      } catch {}
+      throw new ApiError(422, errMsg);
+    }
+
     tokenStore.clear();
     if (!window.location.pathname.startsWith('/login')) {
       window.location.href = '/login';

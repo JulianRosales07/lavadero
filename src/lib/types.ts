@@ -135,6 +135,59 @@ export interface Business {
   factusDefaultMunicipalityCode: string | null;
   factusDefaultLegalOrganizationCode: '1' | '2';
   factusDefaultTributeCode: string;
+  formlyEnabled?: boolean;
+  formlyApiKey?: string | null;
+  formlyTenantId?: string | null;
+  formlyWebhookSecret?: string | null;
+  formlyBaseUrl?: string;
+  formlyAutoCreateSurvey?: boolean;
+}
+
+export interface FormlyConfig {
+  enabled: boolean;
+  apiKey: string | null;
+  hasApiKey: boolean;
+  tenantId: string | null;
+  webhookSecret: string | null;
+  hasWebhookSecret: boolean;
+  baseUrl: string;
+  autoCreateSurvey: boolean;
+  webhookUrl: string;
+}
+
+export interface OrderSurvey {
+  id: string;
+  orderId: string;
+  businessId: string | null;
+  surveyId: string;
+  title: string;
+  status: 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
+  publicUrl: string;
+  shareUrl: string;
+  totalResponses: number;
+  rating?: number | null;
+  npsScore?: number | null;
+  feedback?: string | null;
+  rawResponse?: Record<string, unknown> | null;
+  createdAt: string;
+  updatedAt: string;
+  liveAnalytics?: {
+    surveyId: string;
+    totalResponses: number;
+    npsScore?: number | null;
+    averageRating?: number | null;
+    responses: Array<{
+      responseId: string;
+      submittedAt: string;
+      answers: Array<{
+        questionTitle?: string;
+        questionType?: string;
+        value?: string | number | boolean;
+        selectedOptions?: string[];
+        text?: string;
+      }>;
+    }>;
+  } | null;
 }
 
 export type IdentificationDocumentCode = '11' | '12' | '13' | '22' | '31' | '41' | '47';

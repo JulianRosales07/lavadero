@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { AlertTriangle, Building2, Camera, FileText, KeyRound, Loader2, Printer, Trash2 } from 'lucide-react';
+import { AlertTriangle, Building2, Camera, CheckCircle2, Copy, ExternalLink, FileText, KeyRound, Loader2, Printer, Send, ShieldCheck, Sparkles, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/components/auth-provider';
 import { PageHeader } from '@/components/shared/page-header';
@@ -31,6 +31,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import { useBusiness, useSaveBusiness, useWipeCurrentBusiness } from '@/hooks/use-catalog';
 import { useFactusNumberingRanges } from '@/hooks/use-electronic-invoices';
+import { useFormlyConfig, useRequestFormlyAccess } from '@/hooks/use-formly';
 import { useUpload } from '@/hooks/use-upload';
 import { api, ApiError } from '@/lib/api';
 import { USER_ROLE_META } from '@/lib/constants';
@@ -44,7 +45,7 @@ export default function SettingsPage() {
   const [searchParams] = useSearchParams();
   const requestedTab = searchParams.get('tab');
   const initialTab =
-    requestedTab === 'ticket' || requestedTab === 'factus' || requestedTab === 'seguridad'
+    requestedTab === 'ticket' || requestedTab === 'factus' || requestedTab === 'formly' || requestedTab === 'seguridad'
       ? requestedTab
       : 'negocio';
 
@@ -83,6 +84,10 @@ export default function SettingsPage() {
               <FileText className="size-4" />
               Facturación
             </TabsTrigger>
+            <TabsTrigger value="formly" className="text-xs sm:text-sm">
+              <Sparkles className="size-4 text-sky-500" />
+              Formly (NPS)
+            </TabsTrigger>
             <TabsTrigger value="seguridad" className="text-xs sm:text-sm">
               <KeyRound className="size-4" />
               Seguridad
@@ -98,6 +103,9 @@ export default function SettingsPage() {
         </TabsContent>
         <TabsContent value="factus">
           <FactusTab />
+        </TabsContent>
+        <TabsContent value="formly">
+          <FormlyTab />
         </TabsContent>
         <TabsContent value="seguridad">
           <SecurityTab />
@@ -915,6 +923,355 @@ function Field({ label, value }: { label: string; value: string }) {
     <div className="flex items-center justify-between">
       <span className="text-muted-foreground">{label}</span>
       <span className="font-medium">{value}</span>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------
+// Pestaña: Formly B2B Engine (Encuestas, Analítica & NPS)
+// ---------------------------------------------------------------------
+
+function FormlyTab() {
+  const { user } = useAuth();
+  const { data: business, isLoading: businessLoading } = useBusiness();
+  const { data: formlyConfig, isLoading: configLoading } = useFormlyConfig();
+  const saveBusiness = useSaveBusiness();
+  const requestAccess = useRequestFormlyAccess();
+
+  const [form, setForm] = React.useState<Partial<Business>>({});
+  const [requestForm, setRequestForm] = React.useState({
+    companyName: '',
+    applicantName: '',
+    applicantEmail: '',
+    systemType: 'ERP / Gestión de Lavadero y Automotriz',
+    intendedUse: 'Crear encuestas automáticas de calidad y métricas NPS post-servicio tras entregar los vehículos.',
+    webhookUrl: typeof window !== 'undefined' ? `${window.location.origin}/api/formly/webhook` : '',
+  });
+
+  React.useEffect(() => {
+    if (business) {
+      setForm(business);
+      setRequestForm((prev) => ({
+        ...prev,
+        companyName: business.name || '',
+        applicantName: user?.name || '',
+        applicantEmail: user?.email || '',
+        webhookUrl: `${window.location.origin}/api/formly/webhook`,
+      }));
+    }
+  }, [business, user]);
+
+  const set = (patch: Partial<Business>) => setForm((prev) => ({ ...prev, ...patch }));
+
+  const onSaveSettings = async (event: React.FormEvent) => {
+    event.preventDefault();
+    await saveBusiness.mutateAsync({
+      formlyEnabled: Boolean(form.formlyEnabled),
+      formlyApiKey: form.formlyApiKey?.trim() || null,
+      formlyTenantId: form.formlyTenantId?.trim() || null,
+      formlyWebhookSecret: form.formlyWebhookSecret?.trim() || null,
+      formlyBaseUrl: form.formlyBaseUrl?.trim() || 'http://localhost:8080/api/v1',
+      formlyAutoCreateSurvey: Boolean(form.formlyAutoCreateSurvey ?? true),
+    });
+    toast.success('Configuración de Formly guardada correctamente');
+  };
+
+  const handleCopyWebhook = async () => {
+    const url = formlyConfig?.webhookUrl || `${window.location.origin}/api/formly/webhook`;
+    try {
+      await navigator.clipboard.writeText(url);
+      toast.success('URL del Webhook copiada al portapapeles');
+    } catch {
+      toast.error('No se pudo copiar');
+    }
+  };
+
+  const handleRequestAccess = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!requestForm.companyName.trim() || !requestForm.applicantEmail.trim()) {
+      toast.error('Ingresa nombre de la empresa y correo de contacto');
+      return;
+    }
+    await requestAccess.mutateAsync(requestForm);
+  };
+
+  const isConnected = Boolean(form.formlyEnabled && (form.formlyApiKey || formlyConfig?.hasApiKey));
+
+  if (businessLoading || configLoading) {
+    return (
+      <Card>
+        <CardContent className="h-72 animate-pulse bg-muted/30" />
+      </Card>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Banner de Estado de Conexión */}
+      <Card className={isConnected ? 'border-emerald-500/30 bg-emerald-500/5' : 'border-sky-500/30 bg-sky-500/5'}>
+        <CardContent className="p-4 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <span className={`size-2.5 rounded-full ${isConnected ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'}`} />
+              <h3 className="font-semibold text-base">
+                {isConnected ? 'Motor Formly B2B Conectado' : 'Formly B2B — Acceso Controlado Estilo Factus'}
+              </h3>
+            </div>
+            <p className="text-xs sm:text-sm text-muted-foreground">
+              {isConnected
+                ? `Integración activa. Las órdenes pueden emitir encuestas dinámicas y recibir respuestas vía webhook HMAC.`
+                : 'Solicita credenciales oficiales al Administrador Maestro o ingresa tu API Key para activar encuestas y NPS.'}
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => window.open('http://localhost:4200/docs', '_blank')}
+            >
+              <ExternalLink className="size-3.5 mr-1.5" />
+              Documentación API
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Sección 1: Solicitar Credenciales Oficiales (Modelo Factus) */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base flex items-center gap-2">
+            <Send className="size-4 text-sky-600 dark:text-sky-400" />
+            1. Solicitar Credenciales Oficiales de Integración
+          </CardTitle>
+          <CardDescription>
+            Al igual que Factus, Formly B2B opera bajo acceso controlado multi-inquilino. Envía la solicitud para que el
+            Administrador Maestro (julianrosales0703@hotmail.com) apruebe y emita tu API Key oficial.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleRequestAccess} className="space-y-4">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="req-company">Nombre de la Empresa / Lavadero *</Label>
+                <Input
+                  id="req-company"
+                  value={requestForm.companyName}
+                  onChange={(e) => setRequestForm((prev) => ({ ...prev, companyName: e.target.value }))}
+                  placeholder="Ej. Lavautos El Dorado S.A.S."
+                  required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="req-applicant">Nombre del Solicitante *</Label>
+                <Input
+                  id="req-applicant"
+                  value={requestForm.applicantName}
+                  onChange={(e) => setRequestForm((prev) => ({ ...prev, applicantName: e.target.value }))}
+                  placeholder="Ej. Julián Rosales"
+                  required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="req-email">Correo Electrónico de Contacto *</Label>
+                <Input
+                  id="req-email"
+                  type="email"
+                  value={requestForm.applicantEmail}
+                  onChange={(e) => setRequestForm((prev) => ({ ...prev, applicantEmail: e.target.value }))}
+                  placeholder="contacto@lavadero.com"
+                  required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="req-system">Tipo de Sistema *</Label>
+                <Input
+                  id="req-system"
+                  value={requestForm.systemType}
+                  onChange={(e) => setRequestForm((prev) => ({ ...prev, systemType: e.target.value }))}
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="req-use">Caso de Uso Intencionado</Label>
+              <Input
+                id="req-use"
+                value={requestForm.intendedUse}
+                onChange={(e) => setRequestForm((prev) => ({ ...prev, intendedUse: e.target.value }))}
+                placeholder="Explicación del uso de las encuestas..."
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="req-webhook">URL de Webhook Registrada</Label>
+              <Input
+                id="req-webhook"
+                value={requestForm.webhookUrl}
+                onChange={(e) => setRequestForm((prev) => ({ ...prev, webhookUrl: e.target.value }))}
+                placeholder="https://mi-lavadero.com/api/formly/webhook"
+              />
+              <p className="text-xs text-muted-foreground">
+                El endpoint de tu backend que recibirá las notificaciones instantáneas firmadas criptográficamente.
+              </p>
+            </div>
+
+            <Button
+              type="submit"
+              loading={requestAccess.isPending}
+              className="bg-sky-600 hover:bg-sky-700 text-white"
+            >
+              <Send className="size-4 mr-1.5" />
+              Enviar Solicitud al Administrador Maestro
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
+
+      {/* Sección 2: Configuración de Credenciales Activas */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base flex items-center gap-2">
+            <ShieldCheck className="size-4 text-emerald-600 dark:text-emerald-400" />
+            2. Credenciales de la API REST & Opciones Operativas
+          </CardTitle>
+          <CardDescription>
+            Ingresa la API Key (fmly_live_...), Tenant ID y Signing Secret emitidos tras la aprobación.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={onSaveSettings} className="space-y-6">
+            <div className="flex items-center justify-between gap-4 rounded-lg border border-border/70 p-4">
+              <div>
+                <p className="text-sm font-medium">Habilitar Integración con Formly</p>
+                <p className="text-xs text-muted-foreground">
+                  Permite crear encuestas, consultar métricas y recibir respuestas en tiempo real.
+                </p>
+              </div>
+              <Switch
+                checked={Boolean(form.formlyEnabled)}
+                onCheckedChange={(checked) => set({ formlyEnabled: checked })}
+              />
+            </div>
+
+            <div className="flex items-center justify-between gap-4 rounded-lg border border-border/70 p-4">
+              <div>
+                <p className="text-sm font-medium">Encuestas Automáticas Post-Servicio</p>
+                <p className="text-xs text-muted-foreground">
+                  Genera automáticamente la encuesta de satisfacción cuando una orden pasa a estado "Lista" o "Terminada".
+                </p>
+              </div>
+              <Switch
+                checked={Boolean(form.formlyAutoCreateSurvey ?? true)}
+                onCheckedChange={(checked) => set({ formlyAutoCreateSurvey: checked })}
+              />
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="formly-key">X-Formly-Api-Key (fmly_live_...) *</Label>
+                <Input
+                  id="formly-key"
+                  type="password"
+                  value={form.formlyApiKey ?? ''}
+                  onChange={(e) => set({ formlyApiKey: e.target.value })}
+                  placeholder="fmly_live_xxxxxxxxxxxxxxxxxxxxxxxx"
+                />
+                <p className="text-xs text-muted-foreground">
+                  {formlyConfig?.hasApiKey
+                    ? `Guardada actualmente: ${formlyConfig.apiKey}`
+                    : 'Llave emitida por el Administrador Maestro.'}
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="formly-tenant">Tenant ID (Inquilino)</Label>
+                <Input
+                  id="formly-tenant"
+                  value={form.formlyTenantId ?? ''}
+                  onChange={(e) => set({ formlyTenantId: e.target.value })}
+                  placeholder="ej. t-lavadero-dorado o default"
+                />
+                <p className="text-xs text-muted-foreground">Identificador de tu espacio de trabajo B2B.</p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="formly-secret">Signing Secret (Validación HMAC Webhook)</Label>
+                <Input
+                  id="formly-secret"
+                  type="password"
+                  value={form.formlyWebhookSecret ?? ''}
+                  onChange={(e) => set({ formlyWebhookSecret: e.target.value })}
+                  placeholder="Secreto para verificar firma HMAC-SHA256"
+                />
+                <p className="text-xs text-muted-foreground">
+                  {formlyConfig?.hasWebhookSecret ? 'Secreto criptográfico configurado.' : 'Opcional si no usas firma HMAC.'}
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="formly-url">URL Base de Formly API</Label>
+                <Input
+                  id="formly-url"
+                  value={form.formlyBaseUrl ?? 'http://localhost:8080/api/v1'}
+                  onChange={(e) => set({ formlyBaseUrl: e.target.value })}
+                  placeholder="http://localhost:8080/api/v1"
+                />
+                <p className="text-xs text-muted-foreground">
+                  URL del motor (por defecto http://localhost:8080/api/v1).
+                </p>
+              </div>
+            </div>
+
+            <Button type="submit" loading={saveBusiness.isPending}>
+              Guardar Configuración de Formly
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
+
+      {/* Sección 3: Webhook en Tiempo Real */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base flex items-center gap-2">
+            <Sparkles className="size-4 text-sky-500" />
+            3. Webhook en Tiempo Real (HMAC-SHA256)
+          </CardTitle>
+          <CardDescription>
+            Formly emite notificaciones HTTP POST instantáneas hacia esta URL cada vez que un cliente envía sus respuestas.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-3 bg-muted/50 rounded-lg border">
+            <div className="space-y-1 min-w-0">
+              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                Endpoint Receptor de Webhooks
+              </span>
+              <p className="font-mono text-xs sm:text-sm truncate select-all">
+                {formlyConfig?.webhookUrl || `${window.location.origin}/api/formly/webhook`}
+              </p>
+            </div>
+            <Button variant="outline" size="sm" onClick={handleCopyWebhook} className="shrink-0">
+              <Copy className="size-3.5 mr-1.5" />
+              Copiar URL
+            </Button>
+          </div>
+
+          <div className="text-xs text-muted-foreground space-y-1.5">
+            <p>
+              • <strong>Evento RESPONSE_COMPLETED:</strong> Se recibe al completarse una encuesta, actualizando
+              inmediatamente la calificación por estrellas, la puntuación NPS y los comentarios en la orden.
+            </p>
+            <p>
+              • <strong>Verificación Criptográfica:</strong> La cabecera <code>X-Formly-Signature</code> se comprueba
+              automáticamente usando el hash HMAC-SHA256 de tu cuerpo crudo con el Signing Secret.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
